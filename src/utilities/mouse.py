@@ -6,7 +6,6 @@ import pyautogui as pag
 import pytweening
 from pyclick import HumanCurve
 
-import utilities.debug as debug
 import utilities.imagesearch as imsearch
 from utilities.geometry import Point, Rectangle
 from utilities.random_util import truncated_normal_sample
@@ -14,6 +13,8 @@ from utilities.random_util import truncated_normal_sample
 
 class Mouse:
     click_delay = True
+    custom_speeds = {}
+    DEFAULT_SPEEDS = {"slowest": (85, 100), "slow": (65, 80), "medium": (45, 60), "fast": (20, 40), "fastest": (10, 15), "insane": (2, 4)}
 
     def move_to(self, destination: tuple, **kwargs):
         """
@@ -37,7 +38,6 @@ class Mouse:
         tween = kwargs.get("tweening", pytweening.easeOutQuad)
         mouseSpeed = kwargs.get("mouseSpeed", "fast")
         mouseSpeed = self.__get_mouse_speed(mouseSpeed)
-
         dest_x = destination[0]
         dest_y = destination[1]
 
@@ -162,19 +162,23 @@ class Mouse:
         """
         Converts a text speed to a numeric speed for HumanCurve (targetPoints).
         """
-        if speed == "slowest":
-            min, max = 85, 100
-        elif speed == "slow":
-            min, max = 65, 80
-        elif speed == "medium":
-            min, max = 45, 60
-        elif speed == "fast":
-            min, max = 20, 40
-        elif speed == "fastest":
-            min, max = 10, 15
-        else:
-            raise ValueError("Invalid mouse speed. Try 'slowest', 'slow', 'medium', 'fast', or 'fastest'.")
+
+        speed_range = self.get_speed(speed) or self.DEFAULT_SPEEDS.get(speed)
+
+        if not speed_range:
+            raise ValueError("Invalid mouse speed. Try one of: " + ", ".join(self.DEFAULT_SPEEDS.keys()) + ".")
+
+        min, max = speed_range
         return round(truncated_normal_sample(min, max))
+
+    def register_speed(self, speed_name: str, min_val: int, max_val: int):
+        self.custom_speeds[speed_name] = (min_val, max_val)
+
+    def register_mouse_speed(self, speed_name: str, min_val: int, max_val: int):
+        self.register_speed(speed_name, min_val, max_val)
+
+    def get_speed(self, speed_name: str):
+        return self.custom_speeds.get(speed_name)
 
 
 if __name__ == "__main__":
