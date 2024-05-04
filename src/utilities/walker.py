@@ -95,9 +95,6 @@ class Walking:
             # Get live position.
             new_pos = self.get_target_pos(path)
             if self.check_if_at_destination(area_destination):
-                self.bot.mouse.move_to(self.bot.win.game_view.get_center(), mouseSpeed="fastest")
-                if self.bot.mouseover_text("Walk"):
-                    self.bot.mouse.click()
                 return True
             self.change_position(new_pos)
             if new_pos == path[-1]:
