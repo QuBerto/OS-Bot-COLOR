@@ -13,6 +13,9 @@ NamedDest = Union[str, Tuple[int, int], List[int]]
 class Walker:
     DEGREES_PER_YAW: float = 360 / 2048  # 2048 units of camera yaw equals 360 degrees.
     PIXELS_PER_TILE: int = 4  # There are 4 pixels per tile on a default-scale minimap.
+    MAX_TILE_DISTANCE: int = 12  # Click max 12 tiles ahead
+    AREA_PRECISION: int = 5  # our position in tile-space is within a bounding area.
+    NODE_DISTANCE: int = 10  # Max Distance between waypoints
 
     def __init__(self, runeLiteBot) -> None:
         """Initialize a walking `RuneLiteBot`.
@@ -112,7 +115,7 @@ class Walker:
         idx = next(
             i
             for i in range(len(walk_path) - 1, -1, -1)
-            if (abs(walk_path[i].x - self.x) <= 12 and abs(walk_path[i].y - self.y) <= 12)  # Measured in tile space.
+            if (abs(walk_path[i].x - self.x) <= self.MAX_TILE_DISTANCE and abs(walk_path[i].y - self.y) <= self.MAX_TILE_DISTANCE)  # Measured in tile space.
         )
         self.bot.log_msg(f"Walking progress: {idx}/{len(walk_path)}", overwrite=True)
         return walk_path[idx]
@@ -127,8 +130,8 @@ class Walker:
             bool: True if we have arrived within the destination area, False otherwise.
         """
         self.update_position()
-        p1 = Point(dest.x - 5, dest.y - 5)
-        p2 = Point(dest.x + 5, dest.y + 5)
+        p1 = Point(dest.x - self.AREA_PRECISION, dest.y - self.AREA_PRECISION)
+        p2 = Point(dest.x + self.AREA_PRECISION, dest.y + self.AREA_PRECISION)
         within_x_range = self.x in range(p1.x, p2.x)
         within_y_range = self.y in range(p1.y, p2.y)
         return within_x_range and within_y_range
@@ -242,8 +245,8 @@ class Walker:
             p2 = walk_path[step + 1]
             dist = self.distance(p1, p2)
             # If the next point is far, add intermediary waypoints in between.
-            if dist > 10:  # Measured in tile space.
-                num_waypoints = math.ceil(dist / 10)
+            if dist > self.NODE_DISTANCE:  # Measured in tile space.
+                num_waypoints = math.ceil(dist / self.NODE_DISTANCE)
                 dx = (p2.x - p1.x) / num_waypoints
                 dy = (p2.y - p1.y) / num_waypoints
                 for i in range(1, num_waypoints):
