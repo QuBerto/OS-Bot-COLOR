@@ -2,13 +2,9 @@ import threading
 import time
 from pathlib import Path
 
-import pyautogui
-
 import utilities.api.item_ids as ids
 import utilities.api.locations as loc
 import utilities.color as clr
-import utilities.imagesearch as imsearch
-import utilities.ocr as ocr
 from model.osrs.osrs_bot import OSRSBot
 from utilities.api.morg_http_client import MorgHTTPSocket
 from utilities.functions import QubotFeatures as Qubot
