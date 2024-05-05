@@ -2,27 +2,30 @@ import math
 from typing import List, Literal, Tuple, Union
 
 import utilities.api.locations as loc
+from model import RuneLiteBot
 from utilities.api.morg_http_client import MorgHTTPSocket
 from utilities.api.pathfinder import Pathfinder
 from utilities.geometry import Point
 
 WalkPath = List[Point]
-NamedDest = Union[str, Tuple[int, int], List[int]]
+NamedDest = Union[str, Tuple[int, int]]
 
 
 class Walker:
     DEGREES_PER_YAW: float = 360 / 2048  # 2048 units of camera yaw equals 360 degrees.
     PIXELS_PER_TILE: int = 4  # There are 4 pixels per tile on a default-scale minimap.
+    MAX_WAYPOINT_DIST: int = 10  # Maximum number of tiles between waypoints.
+    MAX_HORIZON: int = 12  # Click up to 12 tiles ahead when walking between waypoints.
+    DEST_SQUARE_SIDE_LENGTH: int = 5  # The side length of square destination zones.
 
-    def __init__(self, runeLiteBot) -> None:
-        """Initialize a walking `RuneLiteBot`.
+    def __init__(self, runeLiteBot: RuneLiteBot) -> None:
+        """Initialize a `RuneLiteBot` so we may equip it to walk.
 
         Args:
             runeLiteBot (RuneLiteBot): The `RuneLiteBot` to walk with.
         """
         self.bot = runeLiteBot
         self.api_m = MorgHTTPSocket()
-        self.run_bool = False
 
     def update_position(self) -> None:
         """Update the `position`, `x`, and `y` attributes via the Morg API.
@@ -33,6 +36,7 @@ class Walker:
         self.x = self.position[0]
         self.y = self.position[1]
         self.z = self.position[2]
+        self.loc = Point(self.x, self.y)
 
     def update_camera_angle(self) -> None:
         """Update the `camera_angle` attribute via the Morg API.
@@ -45,8 +49,9 @@ class Walker:
     def get_pixel_distance(self, dest: Point) -> Point:
         """Find the distance from minimap center to a destination point in pixels.
 
-        The minimap should be brought to its default zoom level via right-clicking. It
-        need not be aligned in any direction, however.
+        The `Walker` seems to perform best with the minimap brought to its default zoom
+        level via right-clicking, but it still works at different zoom levels. It need
+        not be aligned in any direction, however.
 
         Yaw increases as the camera POV rotates anticlockwise. Our calculations to
         follow, however, require angles measured from a clockwise frame of reference.
@@ -79,10 +84,10 @@ class Walker:
         return Point(x_mini, y_mini)
 
     def change_position(self, dest: Point) -> None:
-        """Click the minimap to change position.
+        """Click a point on the minimap and thus command our character to walk there.
 
         Args:
-            dest (Point): The destination xy-coordinate in potentially rotated minimap
+            dest (Point): The destination xy-coordinate in potentially-rotated minimap
                 pixel space.
         """
         self.update_position()
@@ -93,12 +98,13 @@ class Walker:
             y_new = int(round(minimap_center.y + dist_mini.y - 1))
             self.bot.mouse.move_to(Point(x_new, y_new))
             self.bot.mouse.click()
+            self.bot.sleep(0.5, 1)
 
     def get_target_posn(self, walk_path: WalkPath) -> Point:
-        """Get the furthest-away coordinate to the destination within 12 tiles distance.
+        """Get the furthest-away coordinate to the destination within a boundary.
 
-        Get the furthest-away `Point` within 12 tiles by searching from the destination
-        `Point` backward to our current position.
+        Get the furthest-away `Point` within `self.MAX_HORIZON` tiles by searching from
+        the destination `Point` backward to our current position.
 
         Args:
             walk_path (WalkPath): A list of `Point` tuples describing our character's
@@ -109,26 +115,31 @@ class Walker:
         """
         self.update_position()
         # Using a generator for back-to-front search improves performance.
-        idx = next(
+        ind = next(
             i
             for i in range(len(walk_path) - 1, -1, -1)
-            if (abs(walk_path[i].x - self.x) <= 12 and abs(walk_path[i].y - self.y) <= 12)  # Measured in tile space.
+            if (abs(walk_path[i].x - self.x) <= self.MAX_HORIZON and abs(walk_path[i].y - self.y) <= self.MAX_HORIZON)
         )
-        self.bot.log_msg(f"Walking progress: {idx}/{len(walk_path)}", overwrite=True)
-        return walk_path[idx]
+        self.bot.log_msg(f"Walking progress: {ind}/{len(walk_path)}", overwrite=True)
+        return walk_path[ind]
 
-    def has_arrived(self, dest: Point) -> bool:
+    def has_arrived(self, dest: Point, pad: int = None) -> bool:
         """Return True if our position in tile-space is within a bounding area.
 
         Args:
-            dest (Point): The destination `Point` to define an arrival area around.
+            dest (Point): The destination `Point` to define an arrival area around,
+                measured in tiles.
+            pad (int, optional): How much padding to add around the destination point
+                which defines the midpoint of a square destination zone. Defaults to a
+                `self.DEST_SQUARE_SIDE_LENGTH` number of tiles.
 
         Returns:
             bool: True if we have arrived within the destination area, False otherwise.
         """
+        pad = pad if pad else self.DEST_SQUARE_SIDE_LENGTH
         self.update_position()
-        p1 = Point(dest.x - 5, dest.y - 5)
-        p2 = Point(dest.x + 5, dest.y + 5)
+        p1 = Point(dest.x - pad, dest.y - pad)
+        p2 = Point(dest.x + pad, dest.y + pad)
         within_x_range = self.x in range(p1.x, p2.x)
         within_y_range = self.y in range(p1.y, p2.y)
         return within_x_range and within_y_range
@@ -136,41 +147,42 @@ class Walker:
     def walk(self, walk_path: WalkPath, dest: Point = None) -> bool:
         """Walk along a `WalkPath` to a destination area.
 
-        Note that each `Point` defining the `walk_path` and also `dest` is measured in
+        Note that each `Point` defining the `walk_path` and also `dest` are measured in
         tile space. Unlike `walk_to`, `walk` requires a previously-generated `WalkPath`
-        instead of just a starting and destination `Point`.
+        instead of just a starting `Point` and a destination `Point`.
 
         Args:
-            walk_path (WalkPath): The series of `Point` objects to walk along.
+            walk_path (WalkPath): The list of `Point` objects to walk along.
             dest (Path, optional): The destination `Point` to define an arrival area
                 around. Defaults to None, meaning the `walk_path` is simply walked until
                 the last `Point` is reached.
 
         Returns:
-            bool: True if the destination was reached, False if the `WalkPath` was
-                simply traversed until its final `Point`.
+            bool: True if a specified `dest` was reached, False if instead the
+                `WalkPath` was simply traversed until its final `Point`.
         """
         dest = dest if dest else walk_path[-1]
         while True:
-            new_pos = self.get_target_posn(walk_path)
             if self.has_arrived(dest):
                 return True
-            self.change_position(new_pos)  # Walk further along if we haven't arrived.
+            new_pos = self.get_target_posn(walk_path)
             if new_pos == walk_path[-1]:
                 return False
+            self.change_position(new_pos)  # Walk further along if we haven't arrived.
 
-    def walk_to(self, dest: NamedDest, host: Literal["dax", "osrspf"] = "dax") -> bool:
+    def walk_to(self, dest: Union[NamedDest, Point], host: Literal["dax", "osrspf"] = "dax") -> bool:
         """Call an API to generate the shortest `WalkPath` to a destination.
 
-        Note! Dax is more reliable than osrspathfinder! Osrspathfinder periodically fails in certain locations. And why this occurs isn't immediately obvious.
+        Note! Dax is more reliable than osrspathfinder! Osrspathfinder periodically
+        fails in certain locations. Why this occurs isn't immediately obvious.
 
-        The API hosted by osrspathfinder or explv-map (i.e DAX) calculates the shortest
-        path between our character's current position in the center of the game view
-        and a desired location on the map (measured in tiles) via the A* pathfinding
-        algorithm.
+        The pathfinding API hosted by either osrspathfinder or explv-map (i.e DAX)
+        calculates the shortest path between our character's current position in the
+        center of the game view and a desired location on the map (measured in tiles)
+        via the A* (pronounced "A-star") pathfinding algorithm.
 
         Args:
-            dest (NamedDest): Any `Point`, or perhaps instead a string name
+            dest Union[NamedDest, Point]: Any `Point`, or perhaps instead a string name
                 (i.e."VARROCK_SQUARE") associated with a destination listed in
                 `utilities.locations`.
             host ("dax" or "osrspf"): Whether to use the DAX or OSRSpathfinder
@@ -182,10 +194,10 @@ class Walker:
         """
         self.update_position()
         dest = (  # `dest` is a `Point` measured in tile space.
-            getattr(loc, dest) if isinstance(dest, str) else dest  # Grab the coordinate from `utlities.api.locations`.
+            getattr(loc, dest) if isinstance(dest, str) else dest  # If named, look it up in `utlities.api.locations`.
         )
-        current_posn = Point(self.x, self.y)
-        path = self.get_api_walk_path(p1=current_posn, p2=dest, host=host)
+        dest = Point(dest[0], dest[1])
+        path = self.get_api_walk_path(p1=self.loc, p2=dest, host=host)
         return self.walk(path, dest)
 
     def get_api_walk_path(self, p1: Point, p2: Point, host: Literal["dax", "osrspf"]) -> WalkPath:
@@ -200,7 +212,8 @@ class Walker:
             p1 (Point): The start of the path to be calculated.
             p2 (Point): The destination point of the path to be calculated.
             host ("dax" or "osrspf"): Whether to use the DAX or OSRSpathfinder
-                pathfinding API to obtain the desired path.
+                pathfinding API to obtain the desired path. Note that the DAX API is
+                significantly more reliable than OSRSpathfinder equivalent.
 
         Returns:
             WalkPath: The shortest valid path between the two provided points.
@@ -208,7 +221,7 @@ class Walker:
         api = Pathfinder.get_path_dax if host == "dax" else Pathfinder.get_path_osrspf
         if path_raw := api(p1, p2):
             return self.add_waypoints(path_raw)
-        self.bot.log_msg("API request for OSRSPF path failed.")
+        self.bot.log_msg(f"API request for shortest path failed ({p1} -> {p2}).")
         return []
 
     def distance(self, p1: Point, p2: Point) -> float:
@@ -229,7 +242,7 @@ class Walker:
 
         Args:
             walk_path (WalkPath): The list of `Point` objects representing the
-            traversal path we would like to smooth out.
+                traversal path we would like to smooth out.
 
         Returns:
             WalkPath: The original `WalkPath` provided, but with additional
@@ -237,12 +250,12 @@ class Walker:
                 relative ordering of the points provided in `walk_path` is maintained.
         """
         walk_path_w_waypoints = [walk_path[0]]  # Start with the first coordinate.
-        for step in range(len(walk_path) - 1):
+        for step in range(len(walk_path) - 1):  # Note that we stop before the last one.
             p1 = walk_path[step]
             p2 = walk_path[step + 1]
             dist = self.distance(p1, p2)
             # If the next point is far, add intermediary waypoints in between.
-            if dist > 10:  # Measured in tile space.
+            if dist > self.MAX_WAYPOINT_DIST:  # Measured in tile space.
                 num_waypoints = math.ceil(dist / 10)
                 dx = (p2.x - p1.x) / num_waypoints
                 dy = (p2.y - p1.y) / num_waypoints
