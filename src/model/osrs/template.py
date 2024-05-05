@@ -82,6 +82,7 @@ class OSRSTemplate(OSRSBot):
             print(self.click_item(ids.MIND_RUNE, text="Deposit", deposit_all=True))
 
             self.bank_close()
+
             self.update_progress((time.time() - start_time) / end_time)
 
         self.update_progress(1)

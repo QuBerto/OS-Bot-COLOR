@@ -494,7 +494,6 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         else:
             return False
         self.mouse.move_to(self.win.inventory_slots[item].random_point(), mouseSpeed="fastest")
-
         while not self.mouseover_text(text, color=clr.OFF_WHITE):
             self.mouse.move_to(self.win.inventory_slots[item].random_point(), mouseSpeed="fastest")
             if self.mouseover_text(text, color=clr.OFF_WHITE):
