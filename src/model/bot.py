@@ -232,7 +232,6 @@ class Bot(ABC):
         """
         self.controller.clear_log()
 
-    # --- Misc Utility Functions
     def drop_all(self, skip_rows: int = 0, skip_slots: List[int] = None) -> None:
         """
         Shift-clicks all items in the inventory to drop them.
@@ -241,24 +240,36 @@ class Bot(ABC):
             skip_slots: The indices of slots to avoid dropping.
         """
         self.log_msg("Dropping inventory...")
+
         # Determine slots to skip
         if skip_slots is None:
             skip_slots = []
         if skip_rows > 0:
             row_skip = list(range(skip_rows * 4))
             skip_slots = np.unique(row_skip + skip_slots)
+
+        # Define predetermined paths
+        paths = [
+            [1, 5, 9, 13, 17, 21, 25, 26, 22, 18, 14, 10, 6, 2, 3, 7, 11, 15, 19, 23, 27, 28, 24, 20, 16, 12, 8, 4],
+            [4, 8, 12, 16, 20, 24, 28, 27, 23, 19, 15, 11, 7, 3, 2, 6, 10, 14, 18, 22, 26, 25, 21, 17, 13, 9, 5, 1],
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
+            [28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+            [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2],
+            [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 27, 25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1],
+        ]
+
+        # Randomly select a path to follow
+        selected_path = rd.random.choice(paths)
+
         # Start dropping
         pag.keyDown("shift")
-        for i, slot in enumerate(self.win.inventory_slots):
-            if i in skip_slots:
+        for slot in selected_path:
+            if slot in skip_slots:
                 continue
-            p = slot.random_point()
+            p = self.win.inventory_slots[slot - 1].random_point()
             self.mouse.move_to(
                 (p[0], p[1]),
                 mouseSpeed="fastest",
-                knotsCount=1,
-                offsetBoundaryY=40,
-                offsetBoundaryX=40,
                 tween=pytweening.easeInOutQuad,
             )
             self.mouse.click()
