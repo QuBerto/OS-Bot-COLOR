@@ -249,7 +249,7 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         else:
             return None
 
-    def right_click_select(self, text: str, color: clr):
+    def right_click_select(self, text: str, color: clr = clr.WHITE):
         """Right clicks on the screen and selects the option with the given text"""
         self.mouse.right_click()
 
@@ -455,6 +455,15 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
             return True
         return False
 
+    def wait_till_idle(self) -> bool:
+        """
+        Waits until the player is idle.
+        """
+        while not self.api_m.get_is_player_idle(1):
+            time.sleep(1 / 10)
+            pass
+        return True
+
     @deprecated(reason="Click item can do the same but better.")
     def get_item(self, id, last=False, move_first=False):
         """Find an item in inventory and click on it.
@@ -473,7 +482,7 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
                     self.mouse.move_to(self.win.inventory_slots[item[0]].random_point(), mouseSpeed="fastest")
             self.mouse.click()
 
-    def click_item(self, item_id: int, text: str = "Use", move_first: bool = False) -> bool:
+    def click_item(self, item_id: int, text: str = "Use", move_first: bool = False, deposit_all: bool = False) -> bool:
         """Find an item in inventory and click on it.
         :param int item_id: An id representing the item to click on.
         :param str text: The mouseover text to check for. (Default: Use)
@@ -485,15 +494,19 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         else:
             return False
         self.mouse.move_to(self.win.inventory_slots[item].random_point(), mouseSpeed="fastest")
+
         while not self.mouseover_text(text, color=clr.OFF_WHITE):
             self.mouse.move_to(self.win.inventory_slots[item].random_point(), mouseSpeed="fastest")
             if self.mouseover_text(text, color=clr.OFF_WHITE):
                 break
             self.open_tab(3)
             self.mouse.move_to(self.win.inventory_slots[item].random_point(), mouseSpeed="fastest")
-        self.mouse.click()
-        self.log_msg("Clicked item #" + str(item))
-        return True
+        if deposit_all:
+            return self.right_click_select("Deposit-All")
+        else:
+            self.mouse.click()
+            self.log_msg("Clicked item #" + str(item))
+            return True
 
     def click_rectangle(self, rectangle: Rectangle, text: str = "Use") -> bool:
         """

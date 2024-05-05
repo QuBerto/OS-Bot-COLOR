@@ -2,7 +2,6 @@ import time
 
 import utilities.api.item_ids as ids
 import utilities.color as clr
-import utilities.random_util as rd
 from model.osrs.osrs_bot import OSRSBot
 from utilities.api.morg_http_client import MorgHTTPSocket
 from utilities.api.status_socket import StatusSocket
@@ -10,15 +9,27 @@ from utilities.api.status_socket import StatusSocket
 
 class OSRSTTT(OSRSBot):
     def __init__(self):
-        bot_title = "Two Tick Teaks"
+        """
+        Initializes the Two Tick Teaks bot.
+        """
+        bot_title = "QuBerto Teaks"
         description = "Two Tick Teaks"
         super().__init__(bot_title=bot_title, description=description)
         self.running_time = 1
 
     def create_options(self):
+        """
+        Creates options for the bot, such as running time.
+        """
         self.options_builder.add_slider_option("running_time", "How long to run (minutes)?", 1, 500)
 
     def save_options(self, options: dict):
+        """
+        Saves the options set by the user.
+
+        Args:
+            options (dict): Dictionary containing user options.
+        """
         for option in options:
             if option == "running_time":
                 self.running_time = options[option]
@@ -28,6 +39,9 @@ class OSRSTTT(OSRSBot):
         self.options_set = True
 
     def main_loop(self):
+        """
+        The main loop of the bot that runs until the specified running time is reached.
+        """
         self.api_m = MorgHTTPSocket()
         self.api_s = StatusSocket()
         start_time = time.time()
@@ -45,6 +59,9 @@ class OSRSTTT(OSRSBot):
         self.stop()
 
     def start_sequence(self):
+        """
+        Performs the sequence of actions required for the bot.
+        """
         inv_count = len(self.api_m.get_inv())
         if ground := self.get_nearest_tag(clr.YELLOW):
             self.mouse.move_to(ground.random_point(), mouseSpeed="fastest")
@@ -82,6 +99,9 @@ class OSRSTTT(OSRSBot):
             self.current_game_tick = 0
 
     def clear_logs(self):
+        """
+        Clears logs from the inventory.
+        """
         self.log_msg(f"{self.api_s.get_game_tick()} | Dropping logs", overwrite=True)
         if logs := self.api_m.get_inv_item_indices(ids.TEAK_LOGS):
             for log in logs:

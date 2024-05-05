@@ -5,7 +5,7 @@ from utilities.walker import Walker
 
 class OSRSWalkingExample(OSRSBot):
     def __init__(self):
-        super().__init__(bot_title="Wanderer", description="Walk almost anywhere.")
+        super().__init__(bot_title="QuBerto Wanderer", description="Walk almost anywhere.")
 
     def create_options(self):
         locations = [name for name in vars(loc) if not name.startswith("__")]
