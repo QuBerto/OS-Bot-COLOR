@@ -10,6 +10,7 @@ import utilities.ocr as ocr
 import utilities.random_util as rd
 from model.osrs.osrs_bot import OSRSBot
 from utilities.geometry import Point, Rectangle
+from utilities.walker import Walker
 
 
 class OSRSAgilitycourses(OSRSBot):
@@ -24,7 +25,7 @@ class OSRSAgilitycourses(OSRSBot):
         self.running_time = 200
         all_ascii = string.ascii_letters + string.punctuation + "".join(ocr.problematic_chars)
         self.filtered_ascii = "".join([char for char in all_ascii if char not in "0123456789 ,"])
-        self.set_ardougne_course()
+        self.set_fremennik_course()
 
     def create_options(self):
         self.options_builder.add_slider_option("running_time", "How long to run (minutes)?", 1, 500)
@@ -110,7 +111,6 @@ class OSRSAgilitycourses(OSRSBot):
         if self.find_numbers():
             while not self.get_current_tags():
                 self.find_highest()
-
         self.pre_wait()
         self.pick_up_mark()
         while self.is_coursestep():
@@ -150,20 +150,10 @@ class OSRSAgilitycourses(OSRSBot):
         return True
 
     def find_highest(self):
-        for number in self.create_range():
-            found_number = self.find_number(number)
-            if found_number and self.current_highest <= number and rd.random_chance(0.8):
-                self.log_msg(f"Walking to number {number} of {self.get_current_max_tiles()}")
-                center = found_number[0].get_center()
-                rect = Rectangle.from_points(Point(center[0], center[1]), Point(center[0], center[1]))
-                self.mouse.move_to(rect.random_point(), mouseSpeed="fastest")
-                if self.mouseover_text("Walk", color=clr.OFF_WHITE):
-                    self.mouse.click()
-                    self.current_highest = number
-                    time.sleep(1)
-                    while not self.get_current_tags() and self.check_if_walking():
-                        pass
-                    return
+        time.sleep(1)
+        walker = Walker(self)
+        print(self.get_start_coordinates())
+        walker.walk_to(self.get_start_coordinates())
 
     def check_if_walking(self, polling_ms=600):
         old_player_position = self.get_player_position()
@@ -228,6 +218,9 @@ class OSRSAgilitycourses(OSRSBot):
 
     def get_current_wait(self):
         return self.get_current_step().get("wait", 0)
+
+    def get_start_coordinates(self):
+        return self.course.get("start", (-1, -1, -1))
 
     def get_current_timeout(self):
         return self.get_current_step().get("timeout", 10000)
@@ -395,6 +388,7 @@ class OSRSAgilitycourses(OSRSBot):
             "name": "Ape atoll agility course",
             "max_tile": 0,
             "marks": False,
+            "start": (2756, 2743),
             "steps": [
                 {
                     "color": clr.CYAN,
@@ -443,6 +437,7 @@ class OSRSAgilitycourses(OSRSBot):
             "max_tile": 10,
             "marks": True,
             "teleport": "Camelot_Teleport",
+            "start": (2728, 3486),
             "steps": [
                 {
                     "color": clr.CYAN,
@@ -494,12 +489,14 @@ class OSRSAgilitycourses(OSRSBot):
             "name": "Fremennik rooftop course",
             "max_tile": 10,
             "marks": True,
+            "start": (2625, 3678),
             "steps": [
                 {
                     "color": clr.CYAN,
                     "coord": (2625, 3676, 3),
                     "text": "Climb",
                     "timeout": 10000,
+                    "wait": 1000,
                 },
                 {
                     "color": clr.CYAN,
@@ -540,7 +537,7 @@ class OSRSAgilitycourses(OSRSBot):
                     "coord": (2652, 3676, 0),
                     "text": "Jump-in",
                     "timeout": 14000,
-                    "wait": 1000,
+                    "wait": 2500,
                 },
             ],
         }
@@ -550,6 +547,7 @@ class OSRSAgilitycourses(OSRSBot):
             "name": "Falador rooftop course",
             "max_tile": 10,
             "marks": True,
+            "start": (3035, 3339),
             "steps": [
                 {
                     "color": clr.CYAN,
@@ -649,6 +647,7 @@ class OSRSAgilitycourses(OSRSBot):
             "name": "Ardougne rooftop course",
             "max_tile": 10,
             "marks": True,
+            "start": (2673, 3296),
             "steps": [
                 {
                     "color": clr.BLUE,
@@ -702,6 +701,7 @@ class OSRSAgilitycourses(OSRSBot):
             "name": "Canafis rooftop course",
             "max_tile": 10,
             "marks": True,
+            "start": (3506, 3488),
             "steps": [
                 {
                     "color": clr.CYAN,

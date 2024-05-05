@@ -13,7 +13,7 @@ from utilities.api.morg_http_client import MorgHTTPSocket
 
 class OSRSAltar(OSRSBot):
     def __init__(self):
-        bot_title = "ZMI Altar Bot"
+        bot_title = "Quberto ZMI"
         description = "Runs to the ourania Altar. Supports colossal pouch or no pouches."
         super().__init__(bot_title=bot_title, description=description)
         self.running_time = 1
@@ -245,7 +245,7 @@ class OSRSAltar(OSRSBot):
                     if len(self.api_m.get_inv()) == 28:
                         continue
 
-                    if len(self.api_s.get_inv()) != 28:
+                    if len(self.api_m.get_inv()) != 28:
                         if self.api_m.get_if_item_in_inv(ids.PURE_ESSENCE):
                             self.click_altar()
                         break
@@ -392,23 +392,29 @@ class OSRSAltar(OSRSBot):
 
     def get_items_and_close(self):
         # Click pure essence once
+        self.debug("Start get items")
         if not self.click_pure_essence():
+            self.debug("Failed pure essense")
             return False
         if "Colossal_pouch" in self.pouch:
             self.debug("Colossal pouch first")
             if not self.click_pouch(type_pouch="Colossal_pouch", inventory_change=False, empty_fill="Fill"):
+                self.debug("Failed pouch")
                 return False
             # Click pure essence once
             if not self.click_pure_essence():
+                self.debug("Failed pure essense")
                 return False
 
             self.debug("Colossal pouch second")
             # Click pouch
             if not self.click_pouch(type_pouch="Colossal_pouch", inventory_change=False, empty_fill="Fill"):
+                self.debug("Failed pouch")
                 return False
 
             # Click pure essence once
             if not self.click_pure_essence():
+                self.debug("Failed pure essense")
                 return False
             # Success
             time.sleep((random.randint(1, 200) / 1000))
@@ -468,7 +474,8 @@ class OSRSAltar(OSRSBot):
             self.debug("Waiting for inventory change: True")
 
         while not self.bank_position_essence:
-            self.bank_position_essence = imsearch.search_img_in_rect(pure_essence_img, self.win.game_view, confidence=0.05)
+            print(self.bank_position_essence)
+            self.bank_position_essence = imsearch.search_img_in_rect(pure_essence_img, self.win.game_view)
 
         # Set tries to 0
         tries = 0
