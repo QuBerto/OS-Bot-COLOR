@@ -62,6 +62,7 @@ class Window:
     game_view: Rectangle = None
     mouseover: Rectangle = None
     total_xp: Rectangle = None
+    world_location: Rectangle = None
 
     def __init__(self, window_title: str, padding_top: int, padding_left: int) -> None:
         """

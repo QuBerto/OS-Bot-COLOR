@@ -77,7 +77,8 @@ class OSRSTemplate(OSRSBot):
         while time.time() - start_time < end_time:
             # -- Perform bot actions here --
             # Code within this block will LOOP until the bot is stopped.
-
+            # print(self.test(self.win.cp_tabs[0],margin=0, columns=1))
+            self.debug_runelite()
             self.update_progress((time.time() - start_time) / end_time)
 
         self.update_progress(1)
