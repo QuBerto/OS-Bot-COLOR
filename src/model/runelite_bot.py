@@ -583,9 +583,9 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         }
         if image := images.get(prayer):
             self.open_tab(5)
-            img = imsearch.search_img_in_rect(image, self.win.control_panel)
-            if img:
-                if self.color_in_object(img, clr.Color([194, 171, 109])):
+            if img := imsearch.search_img_in_rect(image, self.win.control_panel):
+                if self.color_in_object2(img, clr.Color([194, 171, 109], [195, 176, 123])):
+                    self.log_msg("Prayer is currently on")
                     if not toggle:
                         self.mouse.move_to(img.random_point(), mouseSpeed="fastest")
                         self.mouse.click()
@@ -596,6 +596,7 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
                         self.open_tab(3)
                     return True
                 else:
+                    self.log_msg("Prayer is currently off")
                     if not toggle:
                         self.mouse.move_to(img.random_point(), mouseSpeed="fastest")
                         self.mouse.click()
@@ -1000,26 +1001,26 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         Debug some functions of RuneLiteBot
         """
         functions_to_debug = [
-            ("is_player_doing_action(woodcutting)", lambda: self.is_player_doing_action("woodcutting")),
-            ("pick_up_loot(ids.BONES)", lambda: self.pick_up_loot(["bones"])),
-            ("get_nearest_tagged_NPC()", self.get_nearest_tagged_NPC),
-            ("get_all_tagged_in_rect(game_view, GREEN)", lambda: self.get_all_tagged_in_rect(self.win.game_view, color=clr.GREEN)),
-            ("get_nearest_tagged_NPC()", lambda: self.get_nearest_tag(clr.BLUE)),
-            ("right_click_select()", lambda: self.right_click_select(text="Cancel", color=clr.OFF_WHITE)),
-            ("zoom()", self.zoom),
-            ("get_player_position()", self.get_player_position),
-            ("extract_number_inventory(1)", lambda: self.extract_number_inventory(1)),
-            ("get_all()", self.get_all),
-            ("click_item()", lambda: self.click_item(ids.BONES)),
-            ("click_tag_if_exists()", lambda: self.click_tag_if_exists(clr.BLUE, "Attack")),
-            ("find_open_tab()", self.find_open_tab),
-            ("open_tab(0)", lambda: self.open_tab(0)),
-            ("open_tab(3)", lambda: self.open_tab(3)),
-            ("is_chat(test)", lambda: self.is_chat("Test")),
+            # ("is_player_doing_action(woodcutting)", lambda: self.is_player_doing_action("woodcutting")),
+            # ("pick_up_loot(ids.BONES)", lambda: self.pick_up_loot(["bones"])),
+            # ("get_nearest_tagged_NPC()", self.get_nearest_tagged_NPC),
+            # ("get_all_tagged_in_rect(game_view, GREEN)", lambda: self.get_all_tagged_in_rect(self.win.game_view, color=clr.GREEN)),
+            # ("get_nearest_tagged_NPC()", lambda: self.get_nearest_tag(clr.BLUE)),
+            # ("right_click_select()", lambda: self.right_click_select(text="Cancel", color=clr.OFF_WHITE)),
+            # ("zoom()", self.zoom),
+            # ("get_player_position()", self.get_player_position),
+            # ("extract_number_inventory(1)", lambda: self.extract_number_inventory(1)),
+            # ("get_all()", self.get_all),
+            # ("click_item()", lambda: self.click_item(ids.BONES)),
+            # ("click_tag_if_exists()", lambda: self.click_tag_if_exists(clr.BLUE, "Attack")),
+            # ("find_open_tab()", self.find_open_tab),
+            # ("open_tab(0)", lambda: self.open_tab(0)),
+            # ("open_tab(3)", lambda: self.open_tab(3)),
+            # ("is_chat(test)", lambda: self.is_chat("Test")),
             ("toggle_prayer(magic)", lambda: self.toggle_prayer("magic", "on")),
             ("toggle_prayer(magic)", lambda: self.toggle_prayer("magic", "off")),
-            ("is_bank_open()", self.is_bank_open),
-            ("get_price()", lambda: self.get_price(4151)),
+            # ("is_bank_open()", self.is_bank_open),
+            # ("get_price()", lambda: self.get_price(4151)),
         ]
 
         for description, function in functions_to_debug:
