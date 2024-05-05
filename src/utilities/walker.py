@@ -18,6 +18,7 @@ class Walker:
     MAX_HORIZON: int = 12  # Click up to 12 tiles ahead when walking between waypoints.
     DEST_SQUARE_SIDE_LENGTH: int = 5  # The side length of square destination zones.
 
+
     def __init__(self, runeLiteBot: RuneLiteBot) -> None:
         """Initialize a `RuneLiteBot` so we may equip it to walk.
 
@@ -118,7 +119,9 @@ class Walker:
         ind = next(
             i
             for i in range(len(walk_path) - 1, -1, -1)
+
             if (abs(walk_path[i].x - self.x) <= self.MAX_HORIZON and abs(walk_path[i].y - self.y) <= self.MAX_HORIZON)
+
         )
         self.bot.log_msg(f"Walking progress: {ind}/{len(walk_path)}", overwrite=True)
         return walk_path[ind]
@@ -138,8 +141,10 @@ class Walker:
         """
         pad = pad if pad else self.DEST_SQUARE_SIDE_LENGTH
         self.update_position()
+
         p1 = Point(dest.x - pad, dest.y - pad)
         p2 = Point(dest.x + pad, dest.y + pad)
+
         within_x_range = self.x in range(p1.x, p2.x)
         within_y_range = self.y in range(p1.y, p2.y)
         return within_x_range and within_y_range
@@ -255,8 +260,10 @@ class Walker:
             p2 = walk_path[step + 1]
             dist = self.distance(p1, p2)
             # If the next point is far, add intermediary waypoints in between.
+
             if dist > self.MAX_WAYPOINT_DIST:  # Measured in tile space.
                 num_waypoints = math.ceil(dist / 10)
+
                 dx = (p2.x - p1.x) / num_waypoints
                 dy = (p2.y - p1.y) / num_waypoints
                 for i in range(1, num_waypoints):
