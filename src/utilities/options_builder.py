@@ -26,6 +26,16 @@ class OptionsBuilder:
         """
         self.options[key] = SliderInfo(title, min, max)
 
+    def add_number_option(self, key, title, default_value=8081):
+        """
+        Adds a number box option to the options menu.
+        Args:
+            key: The key to map the option to.
+            title: The title of the option.
+            default_value: The default value of the number box.
+        """
+        self.options[key] = NumberInfo(title, default_value)
+
     def add_checkbox_option(self, key, title, values: list):
         """
         Adds a checkbox option to the options menu.
@@ -68,6 +78,12 @@ class SliderInfo:
         self.title = title
         self.min = min
         self.max = max
+
+
+class NumberInfo:
+    def __init__(self, title, default_value):
+        self.title = title
+        self.default_value = default_value
 
 
 class OptionMenuInfo:
@@ -133,6 +149,8 @@ class OptionsUI(customtkinter.CTkScrollableFrame):
                 self.create_menu(key, value, row)
             elif isinstance(value, TextEditInfo):
                 self.create_text_edit(key, value, row)
+            elif isinstance(value, NumberInfo):
+                self.create_number_field(key, value, row)
             else:
                 raise Exception("Unknown option type")
 
@@ -167,6 +185,43 @@ class OptionsUI(customtkinter.CTkScrollableFrame):
         )
         self.widgets[key].grid(row=0, column=0, sticky="ew")
         self.widgets[key].set(value.min / 100)
+
+    def create_number_field(self, key, value: NumberInfo, row: int):
+        self.labels[key] = customtkinter.CTkLabel(master=self, text=value.title, font=small_font())
+        self.labels[key].grid(row=row, column=0, sticky="nsew", padx=10, pady=20)
+
+        self.widgets[key] = customtkinter.CTkEntry(master=self, corner_radius=5, font=small_font())
+        self.widgets[key].insert(0, str(value.default_value))
+        self.widgets[key].grid(row=row, column=1, sticky="ew", padx=(0, 10))
+
+        def on_validate(P):
+            return P.isdigit() or P == ""
+
+        validate_cmd = self.register(on_validate)
+
+        self.widgets[key].configure(validate="key", validatecommand=(validate_cmd, "%P"))
+
+        def increment():
+            try:
+                current_value = int(self.widgets[key].get())
+                self.widgets[key].delete(0, "end")
+                self.widgets[key].insert(0, str(current_value + 1))
+            except ValueError:
+                pass
+
+        def decrement():
+            try:
+                current_value = int(self.widgets[key].get())
+                self.widgets[key].delete(0, "end")
+                self.widgets[key].insert(0, str(current_value - 1))
+            except ValueError:
+                pass
+
+        up_button = customtkinter.CTkButton(master=self, text="↑", command=increment, width=20, height=20)
+        up_button.grid(row=row, column=2, sticky="ew", padx=(0, 5))
+
+        down_button = customtkinter.CTkButton(master=self, text="↓", command=decrement, width=20, height=20)
+        down_button.grid(row=row, column=3, sticky="ew", padx=(0, 10))
 
     def create_checkboxes(self, key, value: CheckboxInfo, row: int):
         """
