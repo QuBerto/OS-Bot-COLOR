@@ -4,6 +4,7 @@ from .public.AIOBankSkilling import AIOBankSkilling
 from .public.Castlewars import OSRSCastlewars
 from .public.KnightsOfArdougne import OSRSKnight
 from .public.QubertoAgility import OSRSAgilitycourses
+from .public.ScreenShotBot import ScreenShotBot
 from .public.TwoTickTeak import OSRSTTT
 from .public.wanderer import OSRSWalkingExample
 from .public.ZMIaltar import OSRSAltar

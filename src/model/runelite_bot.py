@@ -25,8 +25,10 @@ import requests
 from deprecated import deprecated
 
 import utilities.api.item_ids as ids
+import utilities.BetterColorDetection as bcd
 import utilities.color as clr
 import utilities.debug as debug
+import utilities.extract_contours as ec
 import utilities.imagesearch as imsearch
 import utilities.ocr as ocr
 import utilities.runelite_cv as rcv
@@ -187,6 +189,27 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
             capitalized_phrase = stripped_phrase.capitalize()
             capitalized_phrases.append(capitalized_phrase)
         return capitalized_phrases if to_list else ", ".join(capitalized_phrases)
+
+    def find_color(self, rect: Rectangle, color) -> List[RuneLiteObject]:
+        """
+        Finds all contours on screen of a particular color and returns a list of Shapes.
+        Args:
+            rect: A reference to the Rectangle that this shape belongs in (E.g., Bot.win.control_panel).
+            color: the color to search for in the BetterColorDetection.py file passed as a string ie "orange"
+        Returns:
+            A list of RuneLiteObjects or empty list if none found.
+        """
+        img_rect = rect.screenshot()
+
+        isolated_colors = bcd.detect_color(img_rect, color)
+        objs = ec.extract_contours(isolated_colors)
+        for obj in objs:
+            obj.set_rectangle_reference(rect)
+        return objs
+
+    def bot_view(self, rect: Rectangle):
+        img_rect = rect.screenshot()
+        return img_rect
 
     # --- NPC/Object Detection ---
     def get_nearest_tagged_NPC(self, include_in_combat: bool = False) -> RuneLiteObject:
