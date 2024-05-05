@@ -342,6 +342,18 @@ class Bot(ABC):
             time.sleep(1)
         self.log_msg(f"Done taking {length} second break.", overwrite=True)
 
+    def sleep(self, lo: float = 0.1, hi: float = 0.3) -> None:
+        """Don't do anything for a number of seconds.
+
+        Note that there is a built-in skew to use times closer to the lower bound due
+        to the definition of `fancy_normal_sample`.
+
+        Args:
+            lo (float, optional): Defaults to 0.1.
+            hi (float, optional): Defaults to 0.3.
+        """
+        time.sleep(rd.fancy_normal_sample(lo, hi))
+
     # --- Player Status Functions ---
     def has_hp_bar(self) -> bool:
         """
