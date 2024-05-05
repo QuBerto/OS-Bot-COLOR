@@ -360,16 +360,18 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         Returns:
             int: The average price of the item, or 0 if the request fails.
         """
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0",
+        }
         # Construct the URL to fetch the item's price
         url = "https://prices.runescape.wiki/api/v1/osrs/latest?id=" + str(itemID)
         # Send a GET request to the API
-        response = requests.get(url)
-        print(response)
+        response = requests.get(url, headers=headers)
+
         # Check if the request was successful
         if response.status_code == 200:
             # Parse the JSON response
             data = response.json()
-            print(data)
             # Extract the high and low prices of the item
             high_price = data["data"][str(itemID)]["high"]
             low_price = data["data"][str(itemID)]["low"]
@@ -1000,27 +1002,29 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         """
         Debug some functions of RuneLiteBot
         """
+
         functions_to_debug = [
-            # ("is_player_doing_action(woodcutting)", lambda: self.is_player_doing_action("woodcutting")),
-            # ("pick_up_loot(ids.BONES)", lambda: self.pick_up_loot(["bones"])),
-            # ("get_nearest_tagged_NPC()", self.get_nearest_tagged_NPC),
-            # ("get_all_tagged_in_rect(game_view, GREEN)", lambda: self.get_all_tagged_in_rect(self.win.game_view, color=clr.GREEN)),
-            # ("get_nearest_tagged_NPC()", lambda: self.get_nearest_tag(clr.BLUE)),
-            # ("right_click_select()", lambda: self.right_click_select(text="Cancel", color=clr.OFF_WHITE)),
-            # ("zoom()", self.zoom),
-            # ("get_player_position()", self.get_player_position),
-            # ("extract_number_inventory(1)", lambda: self.extract_number_inventory(1)),
-            # ("get_all()", self.get_all),
-            # ("click_item()", lambda: self.click_item(ids.BONES)),
-            # ("click_tag_if_exists()", lambda: self.click_tag_if_exists(clr.BLUE, "Attack")),
-            # ("find_open_tab()", self.find_open_tab),
-            # ("open_tab(0)", lambda: self.open_tab(0)),
-            # ("open_tab(3)", lambda: self.open_tab(3)),
-            # ("is_chat(test)", lambda: self.is_chat("Test")),
+            ("is_player_doing_action(woodcutting)", lambda: self.is_player_doing_action("woodcutting")),
+            ("pick_up_loot(ids.BONES)", lambda: self.pick_up_loot(["bones"])),
+            ("get_nearest_tagged_NPC()", self.get_nearest_tagged_NPC),
+            ("get_all_tagged_in_rect(game_view, GREEN)", lambda: self.get_all_tagged_in_rect(self.win.game_view, color=clr.GREEN)),
+            ("get_nearest_tagged_NPC()", lambda: self.get_nearest_tag(clr.BLUE)),
+            ("right_click_select()", lambda: self.right_click_select(text="Cancel", color=clr.OFF_WHITE)),
+            ("zoom()", self.zoom),
+            ("get_player_position()", self.get_player_position),
+            ("extract_number_inventory(1)", lambda: self.extract_number_inventory(1)),
+            ("get_all()", self.get_all),
+            ("click_item()", lambda: self.click_item(ids.BONES)),
+            ("click_tag_if_exists()", lambda: self.click_tag_if_exists(clr.BLUE, "Attack")),
+            ("find_open_tab()", self.find_open_tab),
+            ("open_tab(0)", lambda: self.open_tab(0)),
+            ("open_tab(3)", lambda: self.open_tab(3)),
+            ("is_chat(test)", lambda: self.is_chat("Test")),
             ("toggle_prayer(magic)", lambda: self.toggle_prayer("magic", "on")),
             ("toggle_prayer(magic)", lambda: self.toggle_prayer("magic", "off")),
-            # ("is_bank_open()", self.is_bank_open),
-            # ("get_price()", lambda: self.get_price(4151)),
+            ("is_bank_open()", self.is_bank_open),
+            ("get_price(id)", lambda: self.get_price(ids.RUNE_2H_AXE)),
+            ("get_price(str)", lambda: self.get_price(4151)),
         ]
 
         for description, function in functions_to_debug:
@@ -1029,9 +1033,6 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
             self.performance_end()
             self.log_msg(f"{description}: {result}")
         time.sleep(2)
-        # Bugs:
-        # get_price() cant work with ids api
-        # toggle_prayer() off doesnt seem to work
 
     # --- Client Settings ---
     @deprecated(reason="This method is no longer needed for RuneLite games that can launch with arguments through the OSBC client.")
