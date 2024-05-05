@@ -2,6 +2,13 @@
 - OSRS Walker, walk around the map with only coordinates.
 - Mouse speed can be set custom
 
+### New Runelite Functions
+- get_player_position() Position based on plugin world location, have gridview active.
+- test() Create a screenshot of runelite object
+- get_RLobject_by_object() Create a set of runelite objects by parameters
+- get_pixels_by_object() Create list of pixel coordinates by list of runelite objects
+- create_screenshot() Create screenshot of screen with marked runelite objects
+
 ### ⚠️ This project is in Alpha stage ⚠️
 
 # ![logo](https://github.com/kelltom/OS-Bot-COLOR/assets/44652363/c9b93ee8-91a7-4bb4-8e92-5944e2d9d283)
