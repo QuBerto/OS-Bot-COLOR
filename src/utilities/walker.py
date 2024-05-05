@@ -2,7 +2,6 @@ import math
 from typing import List, Literal, Tuple, Union
 
 import utilities.api.locations as loc
-from model import RuneLiteBot
 from utilities.api.morg_http_client import MorgHTTPSocket
 from utilities.api.pathfinder import Pathfinder
 from utilities.geometry import Point
@@ -18,7 +17,7 @@ class Walker:
     MAX_HORIZON: int = 12  # Click up to 12 tiles ahead when walking between waypoints.
     DEST_SQUARE_SIDE_LENGTH: int = 5  # The side length of square destination zones.
 
-    def __init__(self, runeLiteBot: RuneLiteBot) -> None:
+    def __init__(self, runeLiteBot) -> None:
         """Initialize a `RuneLiteBot` so we may equip it to walk.
 
         Args:
