@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -16,15 +16,14 @@ class Pathfinder:
     def make_api_call(
         url: str,
         headers: Dict[str, str],
-        data: Dict[str, Union[str, Dict[str, int]]],
+        data: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Make an API POST request to a pathfinding service.
 
         Args:
-            url (str): URL of the API endpoint to hit.
+            url (str): URL of the API endpoint we are hitting.
             headers (Dict[str, str]): Additional HTTP metadata for the API call.
-            data (Dict[str, Union[str, Dict[str, int]]]): The JSON payload to ship
-                with the API call.
+            data (Dict[str, Any]): The JSON payload to ship with the API call.
 
         Returns:
             Dict[str, Any]: JSON response dictionary.
@@ -35,7 +34,7 @@ class Pathfinder:
 
     @staticmethod
     def get_path_osrspf(p1: Point, p2: Point) -> List[Point]:
-        """Retrieve a `WalkPath` object representing the shortest path to a destination.
+        """Retrieve a shortest `WalkPath` between `p1` and `p2` from OSRSpathfinder.
 
         Args:
             p1 (Point): The start of the path to be calculated.
@@ -43,7 +42,7 @@ class Pathfinder:
 
         Returns:
             List[Point]: `WalkPath` object scraped from the JSON response from the
-                osrspathfinder service.
+                OSRSpathfinder service.
         """
         url = "https://osrspathfinder.com/find-path"
         headers = {
@@ -68,7 +67,8 @@ class Pathfinder:
     def get_path_dax(p1: Point, p2: Point) -> List[Point]:
         """Retrieve a `WalkPath` object representing the shortest path to a destination.
 
-        Note that the DAX service provides human-readable error snippets. They are listed here for reference:
+        Note that the DAX service provides human-readable error snippets. They are
+        listed here for reference:
             ERROR_MESSAGE_MAPPING = {
                 "UNMAPPED_REGION": "Unmapped region.",
                 "BLOCKED": "Tile is blocked.",
@@ -90,14 +90,14 @@ class Pathfinder:
                 DAX pathfinding service.
         """
         url = "https://explv-map.siisiqf.workers.dev/"
+        headers = {
+            "Content-Type": "application/json",
+            "Origin": "https://explv.github.io",
+        }
         payload = {
             "start": {"x": p1.x, "y": p1.y, "z": 0},
             "end": {"x": p2.x, "y": p2.y, "z": 0},
             "player": {"members": True},
-        }
-        headers = {
-            "Content-Type": "application/json",
-            "Origin": "https://explv.github.io",
         }
         try:
             if path_raw := Pathfinder.make_api_call(url, headers, payload)["path"]:

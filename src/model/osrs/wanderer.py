@@ -23,7 +23,7 @@ class OSRSWalkingExample(OSRSBot):
         while True:
             walker = Walker(self)
             dest = self.dest  # loc.TEST_PATH[-1]
-            if walker.walk_to(dest):
-                self.log_msg("Arrived at destination")
+            if walker.walk_to(dest, host="dax"):
+                self.log_msg("Arrived at destination.")
                 self.stop()
             self.stop()
