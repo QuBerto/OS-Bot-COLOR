@@ -1,20 +1,20 @@
 # RuneLiteWindow Documentation
 
-## __init__
+## __init__()
 
 RuneLiteWindow is an extensions of the Window class, which allows for locating and interacting with key
 UI elements on screen.
 
-## initialize
+## initialize()
 
 Overrirde of Window.initialize(). This function is called when the bot is started.
 
-## __locate_hp_prayer_bars
+## __locate_hp_prayer_bars()
 
 Creates Rectangles for the HP and Prayer bars on either side of the control panel, storing it in the
 class property.
 
-## resize
+## resize()
 
 Resizes the client window. Default size is 773x534 (minsize of fixed layout).
 Args:
@@ -23,16 +23,16 @@ Args:
 
 # RuneLiteBot Documentation
 
-## __init__
+## __init__()
 
 None
 
-## is_in_combat
+## is_in_combat()
 
 Returns whether the player is in combat. This is achieved by checking if text exists in the RuneLite opponent info
 section in the game view, and if that text indicates an NPC is out of HP.
 
-## is_player_doing_action
+## is_player_doing_action()
 
 Returns whether the player character is doing a given action. This works by checking the text in the current action
 region of the game view.
@@ -41,7 +41,7 @@ Args:
 Returns:
     True if the player is doing the given action, False otherwise.
 
-## pick_up_loot
+## pick_up_loot()
 
 Attempts to pick up a single purple loot item off the ground. It is your responsibility to ensure you have
 enough inventory space to pick up the item. The item closest to the game view center is picked up first.
@@ -50,7 +50,7 @@ Args:
 Returns:
     True if the item was clicked, False otherwise.
 
-## capitalize_loot_list
+## capitalize_loot_list()
 
 Takes a comma-separated string of loot items and capitalizes each item.
 Args:
@@ -59,7 +59,7 @@ Args:
 Returns:
     A list of capitalized loot items.
 
-## get_nearest_tagged_NPC
+## get_nearest_tagged_NPC()
 
 Locates the nearest tagged NPC, optionally including those in combat.
 Args:
@@ -67,7 +67,7 @@ Args:
 Returns:
     A RuneLiteObject object or None if no tagged NPCs are found.
 
-## get_all_tagged_in_rect
+## get_all_tagged_in_rect()
 
 Finds all contours on screen of a particular color and returns a list of Shapes.
 Args:
@@ -76,7 +76,7 @@ Args:
 Returns:
     A list of RuneLiteObjects or empty list if none found.
 
-## get_nearest_tag
+## get_nearest_tag()
 
 Finds the nearest outlined object of a particular color within the game view and returns it as a RuneLiteObject.
 Args:
@@ -84,11 +84,11 @@ Args:
 Returns:
     The nearest outline to the character as a RuneLiteObject, or None if none found.
 
-## right_click_select
+## right_click_select()
 
 Right clicks on the screen and selects the option with the given text
 
-## zoom
+## zoom()
 
 Zoom in or out on the game window or minimap.
 
@@ -108,13 +108,13 @@ Args:
     overwrite (bool, optional): Whether to reduce log message spam. Defaults to
         True.
 
-## get_player_position
+## get_player_position()
 
 Finds player position on screen
 Returns:
     A tuple of current player position
 
-## get_price
+## get_price()
 
 Fetches the latest price of an item from the RuneScape Wiki API.
 
@@ -124,49 +124,49 @@ Args:
 Returns:
     int: The average price of the item, or 0 if the request fails.
 
-## extract_number_inventory
+## extract_number_inventory()
 
 This will extract the number inside an inventory slot
 
-## do_interface_action
+## do_interface_action()
 
 This will run the inteface action
 
-## wait_till_interface
+## wait_till_interface()
 
 This will stop further execution until interface is opened
 
-## press_key_interface
+## press_key_interface()
 
 This function will press i key on the inteface action
 
-## wait_till_inv_out_of
+## wait_till_inv_out_of()
 
 This will stop further execution until inventory is out of item id(s).
 
-## get_all
+## get_all()
 
 Will check if a certain action menu is open.
 
-## get_item
+## get_item()
 
 Find an item in inventory and click on it.
 :param int item_id: An id representing the item to click on.
 :param str text: The mouseover text to check for. (Default: Use)
 
-## click_item
+## click_item()
 
 Find an item in inventory and click on it.
 :param int item_id: An id representing the item to click on.
 :param str text: The mouseover text to check for. (Default: Use)
 
-## click_rectangle
+## click_rectangle()
 
 Find an item in inventory and click on it.
     :param int item_id: An id representing the item to click on.
     :param str text: The mouseover text to check for. (Default: Use)
 
-## click_tag_if_exists
+## click_tag_if_exists()
 
 Clicks on tag if it exists
 Args:
@@ -174,43 +174,43 @@ Args:
     text: Mouse over text
     check_for_red: if check for red must be activated
 
-## find_open_tab
+## find_open_tab()
 
 Finds the opened tag by color
 
-## open_tab
+## open_tab()
 
 Open tab on controlpanel
     :param int number: A number representing which tab to open
     :param bool force_reset: find open tab again, this proces can be slow
 
-## is_chat
+## is_chat()
 
 Check if text is in chat window
 Args:
     :param str text: A string to search inside the chat window
     :param clr color: A clr object representing the font color
 
-## toggle_prayer
+## toggle_prayer()
 
 Toggle prayer on or off
 Args:
     :param str prayer: A string containing the prayer to toggle
     :para toggle: Either False, on or off
 
-## open_bank
+## open_bank()
 
 Open the bank, a bank must always be marked cyan
 
-## withdraw_items
+## withdraw_items()
 
 Withdraw items from the bank
 
-## bank_close
+## bank_close()
 
 Close the bank
 
-## withdraw_item
+## withdraw_item()
 
 Withdraws an item from a slot in the inventory.
 
@@ -223,7 +223,7 @@ Args:
 Returns:
     bool: True if the item withdrawal was attempted, False otherwise.
 
-## get_inventory_length
+## get_inventory_length()
 
 Gets the length of the player's inventory.
 
@@ -232,20 +232,20 @@ This function utilizes an API call to retrieve the player's inventory items and 
 Returns:
     int: The length of the player's inventory.
 
-## wait_till_bank_open
+## wait_till_bank_open()
 
 Waits until the bank interface is open.
 
 This function continuously checks if the bank interface is open by calling the is_bank_open method until it returns True.
 
-## click_bank
+## click_bank()
 
 Clicks on the bank icon in the game interface.
 
 This function moves the mouse cursor to the nearest cyan-colored tag (indicating the bank icon) and clicks on it.
 If the cursor is not over the "Use" or "Bank" text with an off-white color, it continuously moves the cursor to the nearest cyan-colored tag until it is.
 
-## is_bank_open
+## is_bank_open()
 
 Checks if the bank interface is currently open.
 
@@ -256,7 +256,7 @@ it is considered that the bank interface is open.
 Returns:
     bool: True if the bank interface is open, False otherwise.
 
-## get_item_in_slot
+## get_item_in_slot()
 
 Retrieves the item located in the specified slot of the bank interface.
 
@@ -271,7 +271,7 @@ Args:
 Returns:
     The bank slot object located in the specified slot, or None if the slot is invalid.
 
-## get_banktabs_position
+## get_banktabs_position()
 
 Gets the positions of the bank tabs in the bank interface.
 
@@ -279,7 +279,7 @@ This function first checks if the number of bank slots is not equal to 8.
 If the number of bank slots is not 8, it searches for the image representing the bank tabs within the game view.
 Then, it retrieves the positions of the bank slots based on the found bank tabs image.
 
-## click_deposit_all
+## click_deposit_all()
 
 Clicks the "Deposit All" button in the bank interface.
 
@@ -288,7 +288,7 @@ Then, it checks if the location of the deposit button is known. If not, it attem
 It continuously moves the mouse cursor to the deposit button until the mouseover text "Deposit" with an off-white color is detected.
 Once the mouseover text is detected, indicating that the cursor is over the "Deposit All" button, a click action is performed.
 
-## locate_deposit
+## locate_deposit()
 
 Locates the deposit button within the game view.
 
@@ -298,7 +298,7 @@ If the deposit button is found, its location is stored in the 'deposit_button' a
 Returns:
     bool: True if the deposit button is found and its location is stored, False otherwise.
 
-## color_in_object
+## color_in_object()
 
 Checks if a certain color is present in an object
 Args:
@@ -307,7 +307,7 @@ Args:
 Returns:
     bool True or False
 
-## color_in_object2
+## color_in_object2()
 
 Checks if the pixel color at any point in the object is within the specified color range.
 Args:
@@ -316,7 +316,7 @@ Args:
 Returns:
     bool: True if the color at any point in the object is within the specified color range, False otherwise.
 
-## test
+## test()
 
 Takes an object, turn it into multiple objects take a screenshot and mork those objects
 Args:
@@ -330,7 +330,7 @@ Args:
 Returns:
     Screenshot with marked objects
 
-## get_RLobject_by_object
+## get_RLobject_by_object()
 
 Takes an object, turn it into multiple objects take a screenshot and mork those objects
 Args:
@@ -344,7 +344,7 @@ Args:
 Returns:
     Runelite objects
 
-## get_pixels_by_object
+## get_pixels_by_object()
 
 Takes an object, turn it into multiple objects take a screenshot and mork those objects
 Args:
@@ -358,7 +358,7 @@ Args:
 Returns:
     pixel_coordinates
 
-## create_screenshot
+## create_screenshot()
 
 Creates screenshot from marked coordinated
 Args:
@@ -366,18 +366,18 @@ Args:
 Returns:
     A Screenshot of set list
 
-## performance_start
+## performance_start()
 
 Measure performance of an action. Call performance_end to end measuring
 
-## performance_end
+## performance_end()
 
 Measure performance of an action. Prints time taken since performance_start
 
-## debug_runelite
+## debug_runelite()
 
 Debug some functions of RuneLiteBot
 
-## logout_runelite
+## logout_runelite()
 
 Identifies the RuneLite logout button and clicks it.

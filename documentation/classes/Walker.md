@@ -1,31 +1,32 @@
 # Walker Documentation
 
-## __init__
+## __init__()
 
-Initialize a walking `RuneLiteBot`.
+Initialize a `RuneLiteBot` so we may equip it to walk.
 
 Args:
     runeLiteBot (RuneLiteBot): The `RuneLiteBot` to walk with.
 
-## update_position
+## update_position()
 
 Update the `position`, `x`, and `y` attributes via the Morg API.
 
 Note that the returned position is measured in game tiles (rather than pixels).
 
-## update_camera_angle
+## update_camera_angle()
 
 Update the `camera_angle` attribute via the Morg API.
 
 The camera angle consists of both "pitch" and "yaw", but since we are
 navigating via the flat minimap, "yaw" is the only relevant value.
 
-## get_pixel_distance
+## get_pixel_distance()
 
 Find the distance from minimap center to a destination point in pixels.
 
-The minimap should be brought to its default zoom level via right-clicking. It
-need not be aligned in any direction, however.
+The `Walker` seems to perform best with the minimap brought to its default zoom
+level via right-clicking, but it still works at different zoom levels. It need
+not be aligned in any direction, however.
 
 Yaw increases as the camera POV rotates anticlockwise. Our calculations to
 follow, however, require angles measured from a clockwise frame of reference.
@@ -43,20 +44,20 @@ Returns:
     Point: A `Point` representing a pixel coordinate relative to the center of
         the minimap, accounting for any rotation.
 
-## change_position
+## change_position()
 
-Click the minimap to change position.
+Click a point on the minimap and thus command our character to walk there.
 
 Args:
-    dest (Point): The destination xy-coordinate in potentially rotated minimap
+    dest (Point): The destination xy-coordinate in potentially-rotated minimap
         pixel space.
 
-## get_target_posn
+## get_target_posn()
 
-Get the furthest-away coordinate to the destination within 12 tiles distance.
+Get the furthest-away coordinate to the destination within a boundary.
 
-Get the furthest-away `Point` within 12 tiles by searching from the destination
-`Point` backward to our current position.
+Get the furthest-away `Point` within `self.MAX_HORIZON` tiles by searching from
+the destination `Point` backward to our current position.
 
 Args:
     walk_path (WalkPath): A list of `Point` tuples describing our character's
@@ -65,47 +66,52 @@ Args:
 Returns:
     Point: The next target point to walk to, measured in tile space.
 
-## has_arrived
+## has_arrived()
 
 Return True if our position in tile-space is within a bounding area.
 
 Args:
-    dest (Point): The destination `Point` to define an arrival area around.
+    dest (Point): The destination `Point` to define an arrival area around,
+        measured in tiles.
+    pad (int, optional): How much padding to add around the destination point
+        which defines the midpoint of a square destination zone. Defaults to a
+        `self.DEST_SQUARE_SIDE_LENGTH` number of tiles.
 
 Returns:
     bool: True if we have arrived within the destination area, False otherwise.
 
-## walk
+## walk()
 
 Walk along a `WalkPath` to a destination area.
 
-Note that each `Point` defining the `walk_path` and also `dest` is measured in
+Note that each `Point` defining the `walk_path` and also `dest` are measured in
 tile space. Unlike `walk_to`, `walk` requires a previously-generated `WalkPath`
-instead of just a starting and destination `Point`.
+instead of just a starting `Point` and a destination `Point`.
 
 Args:
-    walk_path (WalkPath): The series of `Point` objects to walk along.
+    walk_path (WalkPath): The list of `Point` objects to walk along.
     dest (Path, optional): The destination `Point` to define an arrival area
         around. Defaults to None, meaning the `walk_path` is simply walked until
         the last `Point` is reached.
 
 Returns:
-    bool: True if the destination was reached, False if the `WalkPath` was
-        simply traversed until its final `Point`.
+    bool: True if a specified `dest` was reached, False if instead the
+        `WalkPath` was simply traversed until its final `Point`.
 
-## walk_to
+## walk_to()
 
 Call an API to generate the shortest `WalkPath` to a destination.
 
-Note! Dax is more reliable than osrspathfinder! Osrspathfinder periodically fails in certain locations. And why this occurs isn't immediately obvious.
+Note! Dax is more reliable than osrspathfinder! Osrspathfinder periodically
+fails in certain locations. Why this occurs isn't immediately obvious.
 
-The API hosted by osrspathfinder or explv-map (i.e DAX) calculates the shortest
-path between our character's current position in the center of the game view
-and a desired location on the map (measured in tiles) via the A* pathfinding
-algorithm.
+The pathfinding API hosted by either osrspathfinder or explv-map (i.e DAX)
+calculates the shortest path between our character's current position in the
+center of the game view and a desired location on the map (measured in tiles)
+via the A* (pronounced "A-star") pathfinding algorithm.
 
 Args:
-    dest (NamedDest): Any `Point`, or perhaps instead a string name
+    dest Union[NamedDest, Point]: Any `Point`, or perhaps instead a string name
         (i.e."VARROCK_SQUARE") associated with a destination listed in
         `utilities.locations`.
     host ("dax" or "osrspf"): Whether to use the DAX or OSRSpathfinder
@@ -115,7 +121,7 @@ Returns:
     bool: True if the destination was reached, False if the `WalkPath` was
         simply traversed until its final `Point`.
 
-## get_api_walk_path
+## get_api_walk_path()
 
 Retreive a `WalkPath` from either the DAX or OSRSpathfinder API endpoints.
 
@@ -128,12 +134,13 @@ Args:
     p1 (Point): The start of the path to be calculated.
     p2 (Point): The destination point of the path to be calculated.
     host ("dax" or "osrspf"): Whether to use the DAX or OSRSpathfinder
-        pathfinding API to obtain the desired path.
+        pathfinding API to obtain the desired path. Note that the DAX API is
+        significantly more reliable than OSRSpathfinder equivalent.
 
 Returns:
     WalkPath: The shortest valid path between the two provided points.
 
-## distance
+## distance()
 
 Return the Euclidean distance between two points.
 
@@ -145,13 +152,13 @@ Args:
 Returns:
     float: The absolute distance between the two provided `Point` objects.
 
-## add_waypoints
+## add_waypoints()
 
 Smooth a `WalkPath` by computing intermediary `Point` objects between steps.
 
 Args:
     walk_path (WalkPath): The list of `Point` objects representing the
-    traversal path we would like to smooth out.
+        traversal path we would like to smooth out.
 
 Returns:
     WalkPath: The original `WalkPath` provided, but with additional
