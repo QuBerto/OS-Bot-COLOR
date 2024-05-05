@@ -15,7 +15,25 @@ from utilities.walker import Walker
 
 class OSRSAgilitycourses(OSRSBot):
     """
-    Most courses are broken currently. Canifis, Falador and Ardougne do work.
+    QuBerto Agility Courses.
+    Choose from a variaty of agility courses.
+    - Falador
+    - Canifis
+    - Seers (Teleport unknown status)
+    - Relleka
+    - Ardougne
+    - Ape Atoll (Broken)
+
+    This script implements a custom utility "Walker" and doesn't currently work for the default OSBC
+
+    Runelite Profile: QubertoAgility.properties
+
+    How to setup:
+    1. Play on responsive mode, with your screen set as wide as possible.
+    2. Import RuneLite Profile
+    3. Start bot near course.
+
+    Adding new ones is very simple, and should only take about 10 minutes. If you have added a course, please share it with the community.
     """
 
     def __init__(self):

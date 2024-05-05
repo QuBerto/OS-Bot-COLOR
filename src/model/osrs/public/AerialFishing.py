@@ -11,6 +11,17 @@ from utilities.api.morg_http_client import MorgHTTPSocket
 
 
 class OSRSAerialFishing(OSRSBot):
+    """
+    QuBerto Arial Fishing is a Fishing/Hunter bot.
+
+    Runelite Profile: AerialFishing.properties
+
+    How to setup:
+    1. Import & activate RuneLite profile
+    2. Take a knife and some fishchunks with you.
+    3. Start script when standing on the marked green tile.
+    """
+
     def __init__(self):
         bot_title = "QuBerto Aereal Fishing"
         description = "Fishes at molch island for you"

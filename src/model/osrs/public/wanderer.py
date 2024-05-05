@@ -5,6 +5,11 @@ from utilities.walker import Walker
 
 class OSRSWalkingExample(OSRSBot):
     def __init__(self):
+        """
+        Walker Tester.
+
+        In option, set destination. Destination should be a valid location without interaction in the way (ie. doors, ditches etc.)
+        """
         super().__init__(bot_title="QuBerto Wanderer", description="Walk almost anywhere.")
 
     def create_options(self):

@@ -12,6 +12,10 @@ from utilities.api.morg_http_client import MorgHTTPSocket
 
 
 class OSRSAltar(OSRSBot):
+    """
+    Read docs: https://github.com/QuBerto/Quberto-ZMI-bot
+    """
+
     def __init__(self):
         bot_title = "Quberto ZMI"
         description = "Runs to the ourania Altar. Supports colossal pouch or no pouches."

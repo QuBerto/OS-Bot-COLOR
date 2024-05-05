@@ -7,6 +7,16 @@ from utilities.api.morg_http_client import MorgHTTPSocket
 
 
 class OSRSCastlewars(OSRSBot):
+    """
+    QuBerto Castle Wars
+    "Plays" Castle Wars for you A.K.A stands afk at the top.
+
+    Runelite Profile: Castlewars.properties
+
+    1. Import Runelite Profile
+    2. Start in the lobby.
+    """
+
     def __init__(self):
         """
         Initializes the Castle Wars AFK bot.

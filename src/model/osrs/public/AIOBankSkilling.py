@@ -6,6 +6,19 @@ from utilities.api.morg_http_client import MorgHTTPSocket
 
 
 class AIOBankSkilling(OSRSBot):
+    """
+    QuBerto AIOBankSkilling
+    Do almost any bankstanding skill with this script.
+
+    Required plugins:
+    Morg HTTP client.
+
+    How to setup:
+    1. Make sure your ingredients are placed in the first spots in your bank.
+    2. Take 1 of each ingredient out of the bank, for example 1 herb, and 1 potion.
+    3. Start script.
+    """
+
     def __init__(self):
         bot_title = "AIO Bank Skilling"
         description = "Start with one of all your ingredients."

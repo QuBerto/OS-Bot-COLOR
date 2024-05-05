@@ -8,6 +8,17 @@ from utilities.api.status_socket import StatusSocket
 
 
 class OSRSTTT(OSRSBot):
+    """
+    Two Tick Trees
+
+    Setup same as in this guide:
+    https://www.youtube.com/watch?v=LnJJ0RuUPws
+
+    1. Import RUneLite Profile
+    2. Stand on yellow marked tile
+    3. Start script.
+    """
+
     def __init__(self):
         """
         Initializes the Two Tick Teaks bot.
