@@ -148,6 +148,10 @@ This will stop further execution until inventory is out of item id(s).
 
 Will check if a certain action menu is open.
 
+## wait_till_idle()
+
+Waits until the player is idle.
+
 ## get_item()
 
 Find an item in inventory and click on it.

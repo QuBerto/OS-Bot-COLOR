@@ -29,6 +29,7 @@ def generate_readme(name, class_functions):
 
 
 def main():
+    generate_readme("Bot", extract_function_comments("src/model/bot.py"))
     generate_readme("RuneLiteBot", extract_function_comments("src/model/runelite_bot.py"))
     generate_readme("Walker", extract_function_comments("src/utilities/walker.py"))
     generate_readme("Random", extract_function_comments("src/utilities/random_util.py"))
