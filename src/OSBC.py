@@ -346,6 +346,10 @@ if __name__ == "__main__":
     app.start()  # Comment out this line.
     # app.test(Bot())  # Uncomment this line and replace argument with your bot's instance.
 
-    # IMPORTANT
-    # - Make sure your bot's options are pre-defined in its __init__ method.
-    # - You can stop the bot by pressing `Left Ctrl`
+#     # IMPORTANT
+#     # - Make sure your bot's options are pre-defined in its __init__ method.
+#     # - You can stop the bot by pressing `Left Ctrl`
+# if __name__ == "__main__":
+#     from model.osrs.public.ShiloFisher import OSRSShilloFisher
+#     app = App(test=True)
+#     app.test(OSRSShilloFisher())

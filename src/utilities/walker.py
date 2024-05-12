@@ -14,8 +14,8 @@ class Walker:
     DEGREES_PER_YAW: float = 360 / 2048  # 2048 units of camera yaw equals 360 degrees.
     PIXELS_PER_TILE: int = 4  # There are 4 pixels per tile on a default-scale minimap.
     MAX_WAYPOINT_DIST: int = 10  # Maximum number of tiles between waypoints.
-    MAX_HORIZON: int = 12  # Click up to 12 tiles ahead when walking between waypoints.
-    DEST_SQUARE_SIDE_LENGTH: int = 5  # The side length of square destination zones.
+    MAX_HORIZON: int = 8  # Click up to 12 tiles ahead when walking between waypoints.
+    DEST_SQUARE_SIDE_LENGTH: int = 4  # The side length of square destination zones.
 
     def __init__(self, runeLiteBot) -> None:
         """Initialize a `RuneLiteBot` so we may equip it to walk.
@@ -82,7 +82,7 @@ class Walker:
         y_mini = int(-x_reg * math.sin(theta) + y_reg * math.cos(theta))
         return Point(x_mini, y_mini)
 
-    def change_position(self, dest: Point) -> None:
+    def change_position(self, dest: Point, mouseSpeed: str = "fastest") -> None:
         """Click a point on the minimap and thus command our character to walk there.
 
         Args:
@@ -95,7 +95,7 @@ class Walker:
             minimap_center = self.bot.win.minimap.get_center()
             x_new = int(round(minimap_center.x + dist_mini.x - 1))
             y_new = int(round(minimap_center.y + dist_mini.y - 1))
-            self.bot.mouse.move_to(Point(x_new, y_new))
+            self.bot.mouse.move_to(Point(x_new, y_new), mouseSpeed=mouseSpeed)
             self.bot.mouse.click()
             self.bot.sleep(0.5, 1)
 

@@ -27,8 +27,8 @@ class OSRSAerialFishing(OSRSBot):
         description = "Fishes at molch island for you"
         super().__init__(bot_title=bot_title, description=description)
         self.running_time = 120
-        self.mouse.register_mouse_speed("custom", 2, 2)
-        self.mouse.register_mouse_speed("custom_2", 8, 12)
+        # self.mouse.register_mouse_speed("custom", 2, 2)
+        # self.mouse.register_mouse_speed("custom_2", 8, 12)
         self.fish_ids = [ids.BLUEGILL, ids.GREATER_SIREN, ids.MOTTLED_EEL, ids.COMMON_TENCH]
         self.map = True
         self.last_notification_time = 0

@@ -6,6 +6,8 @@ def detect_color(image, color):
     # Convert the image from BGR to HSV color space
     image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     color_ranges = {
+        "custom_purple": (np.array([126, 107, 109]), np.array([174, 255, 255])),
+        "custom_cyan": (np.array([89, 123, 117]), np.array([109, 255, 255])),
         "orange": (np.array([0, 147, 136]), np.array([36, 209, 255])),  # door orange
         "red": (np.array([180, 100, 78]), np.array([10, 255, 255])),  # path red
         "cyan": (np.array([77, 236, 136]), np.array([104, 255, 255])),  # default marker cyan

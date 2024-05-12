@@ -2,6 +2,7 @@
 A Bot is a base class for bot script models. It is abstract and cannot be instantiated. Many of the methods in this base class are
 pre-implemented and can be used by subclasses, or called by the controller. Code in this class should not be modified.
 """
+
 import ctypes
 import platform
 import re
@@ -40,6 +41,7 @@ class BotThread(threading.Thread):
         try:
             print("Thread started.")
             self.target()
+
         finally:
             print("Thread stopped successfully.")
 
@@ -80,6 +82,7 @@ class BotStatus(Enum):
 
 class Bot(ABC):
     mouse = Mouse()
+    RemoteInputEnabled = False
     options_set: bool = False
     progress: float = 0
     status = BotStatus.STOPPED
@@ -232,6 +235,7 @@ class Bot(ABC):
         """
         self.controller.clear_log()
 
+    # --- Misc Utility Functions
     def drop_all(self, skip_rows: int = 0, skip_slots: List[int] = None) -> None:
         """
         Shift-clicks all items in the inventory to drop them.
@@ -240,7 +244,6 @@ class Bot(ABC):
             skip_slots: The indices of slots to avoid dropping.
         """
         self.log_msg("Dropping inventory...")
-
         # Determine slots to skip
         if skip_slots is None:
             skip_slots = []
@@ -249,31 +252,41 @@ class Bot(ABC):
             skip_slots = np.unique(row_skip + skip_slots)
 
         # Define predetermined paths
-        paths = [
-            [1, 5, 9, 13, 17, 21, 25, 26, 22, 18, 14, 10, 6, 2, 3, 7, 11, 15, 19, 23, 27, 28, 24, 20, 16, 12, 8, 4],
-            [4, 8, 12, 16, 20, 24, 28, 27, 23, 19, 15, 11, 7, 3, 2, 6, 10, 14, 18, 22, 26, 25, 21, 17, 13, 9, 5, 1],
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
-            [28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
-            [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2],
-            [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 27, 25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1],
-        ]
+        # paths = [
+        #     [1, 5, 9, 13, 17, 21, 25, 26, 22, 18, 14, 10, 6, 2, 3, 7, 11, 15, 19, 23, 27, 28, 24, 20, 16, 12, 8, 4],
+        #     [4, 8, 12, 16, 20, 24, 28, 27, 23, 19, 15, 11, 7, 3, 2, 6, 10, 14, 18, 22, 26, 25, 21, 17, 13, 9, 5, 1],
+        #     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
+        #     [28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+        #     [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2],
+        #     [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 27, 25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1],
+        # ]
 
         # Randomly select a path to follow
-        selected_path = rd.random.choice(paths)
+        # selected_path = rd.random.choice(paths)
 
         # Start dropping
-        pag.keyDown("shift")
-        for slot in selected_path:
-            if slot in skip_slots:
+        if self.RemoteInputEnabled is True:
+            self.mouse.send_modifer_key(401, "shift")
+        else:
+            pag.keyDown("shift")
+
+        for i, slot in enumerate(self.win.inventory_slots):
+            if i in skip_slots:
                 continue
-            p = self.win.inventory_slots[slot - 1].random_point()
+            p = slot.random_point()
             self.mouse.move_to(
                 (p[0], p[1]),
                 mouseSpeed="fastest",
+                knotsCount=1,
+                offsetBoundaryY=40,
+                offsetBoundaryX=40,
                 tween=pytweening.easeInOutQuad,
             )
             self.mouse.click()
-        pag.keyUp("shift")
+        if self.RemoteInputEnabled is True:
+            self.mouse.send_modifer_key(402, "shift")
+        else:
+            pag.keyUp("shift")
 
     def drop(self, slots: List[int]) -> None:
         """
@@ -282,7 +295,10 @@ class Bot(ABC):
             slots: The indices of slots to drop.
         """
         self.log_msg("Dropping items...")
-        pag.keyDown("shift")
+        if self.RemoteInputEnabled is True:
+            self.mouse.send_modifer_key(401, "shift")
+        else:
+            pag.keyDown("shift")
         for i, slot in enumerate(self.win.inventory_slots):
             if i not in slots:
                 continue
@@ -296,7 +312,10 @@ class Bot(ABC):
                 tween=pytweening.easeInOutQuad,
             )
             self.mouse.click()
-        pag.keyUp("shift")
+        if self.RemoteInputEnabled is True:
+            self.mouse.send_modifer_key(402, "shift")
+        else:
+            pag.keyUp("shift")
 
     def friends_nearby(self) -> bool:
         """
@@ -320,6 +339,7 @@ class Bot(ABC):
         self.mouse.click()
         time.sleep(1)
         self.mouse.move_rel(0, -53, 5, 5)
+        time.sleep(1)
         self.mouse.click()
 
     def take_break(self, min_seconds: int = 1, max_seconds: int = 30, fancy: bool = False):
@@ -508,9 +528,14 @@ class Bot(ABC):
         direction_v = "down" if vertical < 0 else "up"
 
         def keypress(direction, duration):
-            pag.keyDown(direction)
-            time.sleep(duration)
-            pag.keyUp(direction)
+            if self.RemoteInputEnabled is True:
+                self.mouse.send_arrow_key(401, direction)
+                time.sleep(duration)
+                self.mouse.send_arrow_key(402, direction)
+            else:
+                pag.keyDown(direction)
+                time.sleep(duration)
+                pag.keyUp(direction)
 
         thread_h = threading.Thread(target=keypress, args=(direction_h, sleep_h), daemon=True)
         thread_v = threading.Thread(target=keypress, args=(direction_v, sleep_v), daemon=True)
@@ -601,7 +626,7 @@ class Bot(ABC):
 
     def toggle_run(self, toggle_on: bool):
         """
-        Toggles run. Assumes client window is configured. Images not included.
+        Toggles run. Assumes client window is configured.
         Args:
             toggle_on: True to turn on, False to turn off.
         """

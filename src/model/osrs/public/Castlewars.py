@@ -115,6 +115,7 @@ class OSRSCastlewars(OSRSBot):
         Clicks the ladder if it exists.
         """
         if self.click_tag_if_exists(clr.YELLOW, text="Climb"):
+            self.log_msg("waiting")
             self.wait_till_idle()
             return True
         return False

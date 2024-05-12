@@ -353,6 +353,11 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         if verbose:
             self.log_msg(f"Zoomed {zstyle} {win_str} ({perc_str: d}%).", overwrite=overwrite)
 
+    def filter_only_numbers(self):
+        all_ascii = string.ascii_letters + string.punctuation + "".join(ocr.problematic_chars)
+        filtered_ascii = "".join([char for char in all_ascii if char not in "0123456789 ,"])
+        return filtered_ascii
+
     def get_player_position(self):
         """
         Finds player position on screen
@@ -482,7 +487,10 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         """
         Waits until the player is idle.
         """
-        while not self.api_m.get_is_player_idle(1):
+        api_m = MorgHTTPSocket()
+        while not api_m.get_is_player_idle(1):
+            pass
+
             time.sleep(1 / 10)
             pass
         return True
@@ -740,11 +748,13 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         # Continuously loop until the cursor is over the "Use" or "Bank" text with an off-white color
         while not self.mouseover_text(["Use", "Bank"], color=clr.OFF_WHITE):
             # Get the nearest cyan-colored tag (indicating the bank icon)
-            if bank := self.get_nearest_tag(color=clr.CYAN):
+            if bank := self.find_color(self.win.game_view, "cyan"):
                 # Move the mouse cursor to the tag's position
-                self.mouse.move_to(bank.random_point())
+                self.mouse.move_to(bank[0].random_point())
         # Once the cursor is over the "Use" or "Bank" text with an off-white color, click on it
-        self.mouse.click()
+        if not self.mouse.click(check_red_click=True):
+            self.click_bank()
+        return True
 
     def is_bank_open(self):
         """

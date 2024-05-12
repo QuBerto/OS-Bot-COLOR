@@ -2,19 +2,21 @@ import time
 
 import utilities.api.item_ids as ids
 import utilities.color as clr
+import utilities.ocr as ocr
 import utilities.random_util as rd
 from model.osrs.osrs_bot import OSRSBot
 from utilities.api.morg_http_client import MorgHTTPSocket
 from utilities.api.status_socket import StatusSocket
+from utilities.geometry import Point, Rectangle
 
 
-class OSRSTemplate(OSRSBot):
+class OSRSWintertodt(OSRSBot):
     def __init__(self):
-        bot_title = "<Script name here>"
-        description = "<Script description here>"
+        bot_title = "QuBerto Wintertodt"
+        description = "QuBerto Wintertodt"
         super().__init__(bot_title=bot_title, description=description)
         # Set option variables below (initial value is only used during headless testing)
-        self.running_time = 1
+        self.running_time = 100
 
     def create_options(self):
         """
@@ -68,7 +70,7 @@ class OSRSTemplate(OSRSBot):
           operator to access their functions.
         """
         # Setup APIs
-        # api_m = MorgHTTPSocket()
+        self.api_m = MorgHTTPSocket()
         # api_s = StatusSocket()
 
         # Main loop
@@ -78,13 +80,80 @@ class OSRSTemplate(OSRSBot):
             # -- Perform bot actions here --
             # Code within this block will LOOP until the bot is stopped.
             # print(self.test(self.win.cp_tabs[0],margin=0, columns=1))
-            self.open_bank()
-            print(self.click_item(ids.MIND_RUNE, text="Deposit", deposit_all=True))
-
-            self.bank_close()
-
+            self.find_game_status()
+            self.debug_wintertodt()
+            time.sleep(1)
             self.update_progress((time.time() - start_time) / end_time)
 
         self.update_progress(1)
         self.log_msg("Finished.")
         self.stop()
+
+    def find_game_status(self):
+        text = (ocr.find_text("Wintertodt", self.win.game_view, font=ocr.PLAIN_11, color=clr.BLACK))[0]
+        new_rectangle = Rectangle(text.left, text.top, 150, text.height)
+
+        extract = ocr.extract_text(new_rectangle, ocr.PLAIN_11, color=clr.BLACK, exclude_chars=(self.filter_only_numbers().replace("%", "")))
+
+        if "%" in extract:
+            self.game_status = "running"
+            self.wintertodt_energy = extract.replace("%", "")
+            self.waiting_time = 0
+        else:
+            self.game_status = "waiting"
+            self.waiting_time = extract
+            self.wintertodt_energy = 0
+
+        if roots := self.api_m.get_inv_item_indices(ids.BRUMA_ROOT):
+            self.has_roots = True
+            self.roots = roots
+        else:
+            self.has_roots = False
+            self.roots = []
+
+        if kindling := self.api_m.get_inv_item_indices(ids.BRUMA_KINDLING):
+            self.has_kindling = True
+            self.kindling = kindling
+        else:
+            self.has_kindling = False
+            self.kindling = []
+        self.get_inv_status()
+
+    def get_inv_status(self):
+        inv = self.api_m.get_inv()
+        self.inv_length = len(inv)
+        self.roots = []
+        self.kindling = []
+        self.food = []
+        self.hammer = []
+        self.knife = []
+        self.tinderbox = []
+        self.food = []
+        for item in inv:
+            if item["id"] == ids.BRUMA_KINDLING:
+                self.kindling.append(item["index"])
+            elif item["id"] == ids.BRUMA_ROOT:
+                self.roots.append(item["index"])
+            elif item["id"] == ids.TINDERBOX:
+                self.tinderbox.append(item["index"])
+            elif item["id"] == ids.HAMMER:
+                self.hammer.append(item["index"])
+            elif item["id"] == ids.KNIFE:
+                self.knife.append(item["index"])
+            elif item["id"] in [ids.CAKE, ids.SLICE_OF_CAKE]:
+                self.food.append(item["index"])
+
+    def decide_task(self):
+        while self.game_status == "waiting":
+            time.sleep(0.5)
+        if self.game_status == "running":
+            pass
+
+    def debug_wintertodt(self):
+        print(self.game_status)
+        print(self.wintertodt_energy)
+        print(self.waiting_time)
+        print(self.has_kindling)
+        print(self.kindling)
+        print(self.has_roots)
+        print(self.roots)
