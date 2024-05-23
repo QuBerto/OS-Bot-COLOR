@@ -86,7 +86,7 @@ class OSRSShilloFisher(OSRSBot):
             # # 2% chance to drop logs early
             # if rd.random_chance(probability=0.02):
             #     self.__drop_logs(api_s)
-
+            print(api_s.get_is_inv_full())
             # If inventory is full, drop logs
             if api_s.get_is_inv_full():
                 self.__bank(api_s)
@@ -111,7 +111,8 @@ class OSRSShilloFisher(OSRSBot):
 
             # While the player is chopping (or moving), wait
             probability = 0.10
-            while not api_m.get_is_player_idle():
+            while not api_s.get_is_player_idle():
+                print(api_m.get_is_player_idle())
                 # Every second there is a chance to move the mouse to the next tree, lessen the chance as time goes on
                 if rd.random_chance(probability):
                     self.__move_mouse_to_nearest_tree(next_nearest=True)

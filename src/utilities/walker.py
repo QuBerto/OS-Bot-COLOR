@@ -199,6 +199,8 @@ class Walker:
         )
         dest = Point(dest[0], dest[1])
         path = self.get_api_walk_path(p1=self.loc, p2=dest, host=host)
+        print(self.loc)
+        print(dest)
         return self.walk(path, dest)
 
     def get_api_walk_path(self, p1: Point, p2: Point, host: Literal["dax", "osrspf"]) -> WalkPath:

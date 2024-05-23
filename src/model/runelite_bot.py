@@ -34,6 +34,7 @@ import utilities.ocr as ocr
 import utilities.runelite_cv as rcv
 from model.bot import Bot, BotStatus
 from utilities.api.morg_http_client import MorgHTTPSocket
+from utilities.api.status_socket import StatusSocket
 from utilities.geometry import Point, Rectangle, RuneLiteObject
 from utilities.window import Window
 
@@ -58,6 +59,7 @@ class RuneLiteWindow(Window):
         if not super().initialize():
             return False
         self.__locate_hp_prayer_bars()
+        self.imgtabs = False
         self.current_action = Rectangle(
             left=10 + self.game_view.left,
             top=25 + self.game_view.top,
@@ -105,6 +107,7 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         self.bank_slots = []
         self.deposit_button = False
         self.imgtabs = False
+        self.all_characters_except_digits = list(string.ascii_letters + string.punctuation + string.whitespace)
 
     # --- OCR Functions ---
     @deprecated(reason="This is a slow way of checking if you are in combat. Consider using an API function instead.")
@@ -414,14 +417,14 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         """
         This will extract the number inside an inventory slot
         """
-        all_characters_except_digits = list(string.ascii_letters + string.punctuation + string.whitespace)
+        self.all_characters_except_digits = list(string.ascii_letters + string.punctuation + string.whitespace)
         if not self.open_tab(3):
             return False
         quantity = ocr.extract_text(
             rect=self.win.inventory_slots[inv_slot],
             font=ocr.PLAIN_11,
             color=[clr.OFF_YELLOW, clr.WHITE, clr.RED],
-            exclude_chars=all_characters_except_digits,
+            exclude_chars=self.all_characters_except_digits,
         )
         try:
             return int(quantity)
@@ -513,7 +516,7 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
                     self.mouse.move_to(self.win.inventory_slots[item[0]].random_point(), mouseSpeed="fastest")
             self.mouse.click()
 
-    def click_item(self, item_id: int, text: str = "Use", move_first: bool = False, deposit_all: bool = False) -> bool:
+    def click_item(self, item_id, text: str = "Use", move_first: bool = False, deposit_all: bool = False, max_tries: int = 5, log: bool = False) -> bool:
         """Find an item in inventory and click on it.
         :param int item_id: An id representing the item to click on.
         :param str text: The mouseover text to check for. (Default: Use)
@@ -525,7 +528,9 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         else:
             return False
         self.mouse.move_to(self.win.inventory_slots[item].random_point(), mouseSpeed="fastest")
-        while not self.mouseover_text(text, color=clr.OFF_WHITE):
+        tries = 0
+        while not self.mouseover_text(text, color=clr.OFF_WHITE) and tries < max_tries:
+            tries = tries + 1
             self.mouse.move_to(self.win.inventory_slots[item].random_point(), mouseSpeed="fastest")
             if self.mouseover_text(text, color=clr.OFF_WHITE):
                 break
@@ -535,7 +540,8 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
             return self.right_click_select("Deposit-All")
         else:
             self.mouse.click()
-            self.log_msg("Clicked item #" + str(item))
+            if log:
+                self.log_msg("Clicked item #" + str(item))
             return True
 
     def click_rectangle(self, rectangle: Rectangle, text: str = "Use") -> bool:
@@ -565,7 +571,7 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         if not self.mouseover_text(text, color=clr.OFF_WHITE):
             return False
         if check_for_red is True:
-            return self.mouse.click(check_for_red=check_for_red)
+            return self.mouse.click(check_red_click=check_for_red)
         self.mouse.click()
         return True
 
@@ -652,12 +658,22 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
                         self.open_tab(3)
                     return True
 
+    def wait_game_ticks(self, tick: int = 1):
+        api_s = StatusSocket()
+        start_tick = api_s.get_game_tick()
+        while start_tick + tick > api_s.get_game_tick():
+            time.sleep(1 / 10)
+            pass
+
     def open_bank(self):
         """
         Open the bank, a bank must always be marked cyan
         """
         self.click_bank()
-        self.wait_till_bank_open()
+        return self.wait_till_bank_open()
+
+    def withdraw_first(self, clicks: int = 1):
+        self.withdraw_item({"slot": 1, "clicks": clicks})
 
     def withdraw_items(self, items, close=False, mouse_speed="fastest", check=True):
         """
@@ -733,9 +749,13 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         This function continuously checks if the bank interface is open by calling the is_bank_open method until it returns True.
 
         """
+        api_m = MorgHTTPSocket()
         # Continuously loop until the bank interface is open
         while not self.is_bank_open():
+            if api_m.get_is_player_idle():
+                return False
             pass
+        return True
 
     def click_bank(self):
         """
@@ -768,16 +788,13 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
             bool: True if the bank interface is open, False otherwise.
         """
         tabs_img = imsearch.BOT_IMAGES.joinpath("bank", "banktabs.png")
-        self.performance_start()
         if self.imgtabs:
-            if imsearch.search_img_in_rect(tabs_img, self.imgtabs, confidence=0.05):
-                self.performance_end()
+            if imsearch.search_img_in_rect(tabs_img, self.imgtabs, confidence=0.01):
                 return True
         else:
             if imsearch.search_img_in_rect(tabs_img, self.win.game_view, confidence=0.05):
-                self.performance_end()
                 return True
-        self.performance_end()
+
         return False
 
     def get_item_in_slot(self, slot: int):
@@ -925,14 +942,14 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
 
     def get_RLobject_by_object(self, object, bankslots=False, offset_x=0, offset_y=0, extra_margin_left=0, extra_margin_right=0, columns=8, margin=5):
         """
-        Takes an object, turn it into multiple objects take a screenshot and mork those objects
+        Takes an object, turn it into multiple objects take a screenshot and mark those objects
         Args:
-            object: A Runelite object
+            obj: A Runelite object
             offset_x: Move pixels to x
             offset_y: Move pixels to y
-            extra_margin_left: add margin to each objext on the left, can also be negative
-            extra_margin_right: add margin to each objext on the left, can also be negative
-            columns: How many colums
+            extra_margin_left: add margin to each object on the left, can also be negative
+            extra_margin_right: add margin to each object on the right, can also be negative
+            columns: How many columns
             margin: add margin around each column
         Returns:
             Runelite objects
@@ -1003,7 +1020,6 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
             if bankslots:
                 self.bank_slots.append(Rectangle(left=start_x, top=start_y, width=end_x - start_x, height=end_y - start_y))
             pixel_coordinates.append(((start_x, start_y), (end_x, end_y)))
-        print(pixel_coordinates)
         return pixel_coordinates
 
     def create_screenshot(self, pixel_coordinates):
@@ -1033,14 +1049,14 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         """
         Measure performance of an action. Call performance_end to end measuring
         """
-        self.start_time = time.perf_counter()
+        self.performance_start_time = time.perf_counter()
 
     def performance_end(self):
         """
         Measure performance of an action. Prints time taken since performance_start
         """
-        self.end_time = time.perf_counter()
-        elapsed_time_ms = (self.end_time - self.start_time) * 1000  # Convert to milliseconds
+        self.performance_end_time = time.perf_counter()
+        elapsed_time_ms = (self.performance_end_time - self.performance_start_time) * 1000  # Convert to milliseconds
         self.log_msg(f"Time taken full: {elapsed_time_ms: .2f} ms")
 
     def debug_runelite(self):
