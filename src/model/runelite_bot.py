@@ -770,7 +770,7 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
             # Get the nearest cyan-colored tag (indicating the bank icon)
             if bank := self.find_color(self.win.game_view, "cyan"):
                 # Move the mouse cursor to the tag's position
-                self.mouse.move_to(bank[0].random_point())
+                self.mouse.move_to(bank[0].random_point(), mouseSpeed="fastest")
         # Once the cursor is over the "Use" or "Bank" text with an off-white color, click on it
         if not self.mouse.click(check_red_click=True):
             self.click_bank()

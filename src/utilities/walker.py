@@ -15,7 +15,7 @@ class Walker:
     PIXELS_PER_TILE: int = 4  # There are 4 pixels per tile on a default-scale minimap.
     MAX_WAYPOINT_DIST: int = 10  # Maximum number of tiles between waypoints.
     MAX_HORIZON: int = 8  # Click up to 12 tiles ahead when walking between waypoints.
-    DEST_SQUARE_SIDE_LENGTH: int = 4  # The side length of square destination zones.
+    DEST_SQUARE_SIDE_LENGTH: int = 3  # The side length of square destination zones.
 
     def __init__(self, runeLiteBot) -> None:
         """Initialize a `RuneLiteBot` so we may equip it to walk.
@@ -137,9 +137,17 @@ class Walker:
         """
         pad = pad if pad else self.DEST_SQUARE_SIDE_LENGTH
         self.update_position()
+        # Handle start coordinates
+        if isinstance(dest, tuple) and len(dest) == 2:
+            p1 = Point(dest[0] - pad, dest[1] - pad)
+        else:
+            p1 = Point(dest.x - pad, dest.y - pad)
 
-        p1 = Point(dest.x - pad, dest.y - pad)
-        p2 = Point(dest.x + pad, dest.y + pad)
+        # Handle end coordinates
+        if isinstance(dest, tuple) and len(dest) == 2:
+            p2 = Point(dest[0] + pad, dest[1] + pad)
+        else:
+            p2 = Point(dest.x + pad, dest.y + pad)
 
         within_x_range = self.x in range(p1.x, p2.x)
         within_y_range = self.y in range(p1.y, p2.y)

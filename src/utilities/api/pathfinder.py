@@ -95,10 +95,20 @@ class Pathfinder:
             "Origin": "https://explv.github.io",
         }
         payload = {
-            "start": {"x": p1.x, "y": p1.y, "z": 0},
-            "end": {"x": p2.x, "y": p2.y, "z": 0},
             "player": {"members": True},
         }
+
+        # Handle start coordinates
+        if isinstance(p1, tuple) and len(p1) == 2:
+            payload["start"] = {"x": p1[0], "y": p1[1], "z": 0}
+        else:
+            payload["start"] = {"x": p1.x, "y": p1.y, "z": 0}
+
+        # Handle end coordinates
+        if isinstance(p2, tuple) and len(p2) == 2:
+            payload["end"] = {"x": p2[0], "y": p2[1], "z": 0}
+        else:
+            payload["end"] = {"x": p2.x, "y": p2.y, "z": 0}
         try:
             if path_raw := Pathfinder.make_api_call(url, headers, payload)["path"]:
                 return [Point(step["x"], step["y"]) for step in path_raw]
