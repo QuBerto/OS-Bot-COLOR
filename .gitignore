@@ -174,3 +174,7 @@ src/runelite_settings/profile_manager_paths.json
 /src/model/osrs/private
 src/utilities/api/events_api/data/*
 src/utilities/auth_client.py
+src/utilities/auth_client.c
+src/utilities/auth_client.pyx
+src/utilities/auth_client.py
+src/utilities/auth_client.py
