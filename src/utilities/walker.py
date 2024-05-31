@@ -2,7 +2,6 @@ import math
 from typing import List, Literal, Tuple, Union
 
 import utilities.api.locations as loc
-from utilities.api.morg_http_client import MorgHTTPSocket
 from utilities.api.pathfinder import Pathfinder
 from utilities.geometry import Point
 
@@ -24,14 +23,13 @@ class Walker:
             runeLiteBot (RuneLiteBot): The `RuneLiteBot` to walk with.
         """
         self.bot = runeLiteBot
-        self.api_m = MorgHTTPSocket()
 
     def update_position(self) -> None:
         """Update the `position`, `x`, and `y` attributes via the Morg API.
 
         Note that the returned position is measured in game tiles (rather than pixels).
         """
-        self.position = self.api_m.get_player_position()
+        self.position = self.bot.get_player_position()
         self.x = self.position[0]
         self.y = self.position[1]
         self.z = self.position[2]
@@ -43,7 +41,7 @@ class Walker:
         The camera angle consists of both "pitch" and "yaw", but since we are
         navigating via the flat minimap, "yaw" is the only relevant value.
         """
-        self.camera_angle = self.api_m.get_camera_position().get("yaw")
+        self.camera_angle = 0  # self.api_m.get_camera_position().get("yaw")
 
     def get_pixel_distance(self, dest: Point) -> Point:
         """Find the distance from minimap center to a destination point in pixels.

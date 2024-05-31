@@ -4,6 +4,7 @@ import webbrowser as wb
 import customtkinter
 from PIL import Image, ImageTk
 
+from utilities.auth_client import AuthClient
 from view.bcd2_view import bcd2view
 from view.fonts.fonts import *
 from view.sprite_scraper_view import SpriteScraperView
@@ -12,15 +13,16 @@ from view.sprite_scraper_view import SpriteScraperView
 class TitleView(customtkinter.CTkFrame):
     def __init__(self, parent, main):
         super().__init__(parent)
-        self.main = main
 
+        self.auth_client = AuthClient()
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)  # Spacing
         self.grid_rowconfigure(1, weight=0)  # - Logo
         self.grid_rowconfigure(2, weight=0)  # - Note
         self.grid_rowconfigure(3, weight=0)  # - Buttons
         self.grid_rowconfigure(4, weight=0)  # - Buttons
-        self.grid_rowconfigure(5, weight=1)  # Spacing
+        self.grid_rowconfigure(5, weight=0)  # - New Button
+        self.grid_rowconfigure(6, weight=1)  # Spacing
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=0)
@@ -91,7 +93,7 @@ class TitleView(customtkinter.CTkFrame):
             Image.open(f"{self.logo_path}/images/ui/bug-report_w.png").resize((IMG_SIZE, IMG_SIZE)),
             Image.LANCZOS,
         )
-        self.btn_feedback = customtkinter.CTkButton(
+        self.btn_bug_report = customtkinter.CTkButton(
             master=self,
             text="Report Bug",
             font=button_med_font(),
@@ -104,7 +106,7 @@ class TitleView(customtkinter.CTkFrame):
             compound="top",
             command=self.btn_bug_report_clicked,
         )
-        self.btn_feedback.grid(row=3, column=2, padx=15, pady=(15, 0), sticky="w")
+        self.btn_bug_report.grid(row=3, column=2, padx=15, pady=(15, 0), sticky="w")
 
         # -- Sprite Scraper
         self.scraper_logo = ImageTk.PhotoImage(
@@ -143,6 +145,25 @@ class TitleView(customtkinter.CTkFrame):
         )
         self.btn_BCD.grid(row=4, column=0, padx=15, pady=(15, 0), sticky="e")
 
+        # -- New Button for Email/Password Popup
+        self.popup_logo = ImageTk.PhotoImage(
+            Image.open(f"{self.logo_path}/images/ui/login.png").resize((IMG_SIZE, IMG_SIZE)),
+            Image.LANCZOS,
+        )
+        self.btn_popup = customtkinter.CTkButton(
+            master=self,
+            text="Login",
+            font=button_med_font(),
+            image=self.popup_logo,
+            width=BTN_WIDTH,
+            height=BTN_HEIGHT,
+            corner_radius=15,
+            fg_color=DEFAULT_GRAY,
+            compound="top",
+            command=self.btn_popup_clicked,
+        )
+        self.btn_popup.grid(row=4, column=2, padx=15, pady=(15, 0), sticky="w")
+
     def btn_github_clicked(self):
         wb.open_new_tab("https://github.com/kelltom/OSRS-Bot-COLOR")
 
@@ -166,3 +187,47 @@ class TitleView(customtkinter.CTkFrame):
         window.title("BCD 2.0 Tools")
         view = bcd2view(parent=window)
         view.pack(side="top", fill="both", expand=True, padx=20, pady=20)
+
+    def btn_popup_clicked(self):
+        popup_window = customtkinter.CTkToplevel(master=self)
+        popup_window.geometry("400x300")
+        popup_window.title("Login")
+        popup_window.focus_set()  # Set focus to the popup window
+        self.popup_window = popup_window  # Store the popup window reference
+
+        popup_window.grid_columnconfigure(0, weight=1)
+        popup_window.grid_rowconfigure(0, weight=1)
+        popup_window.grid_rowconfigure(1, weight=1)
+        popup_window.grid_rowconfigure(2, weight=1)
+        popup_window.grid_rowconfigure(3, weight=1)
+
+        # Email Entry
+        self.entry_email = customtkinter.CTkEntry(master=popup_window)
+        label_email = customtkinter.CTkLabel(master=popup_window, text="Email:")
+        label_email.grid(row=0, column=0, padx=20, pady=10)
+        self.entry_email.grid(row=1, column=0, padx=20, pady=10)
+
+        # Password Entry
+        self.entry_password = customtkinter.CTkEntry(master=popup_window, show="*")
+        label_password = customtkinter.CTkLabel(master=popup_window, text="Password:")
+        label_password.grid(row=2, column=0, padx=20, pady=10)
+        self.entry_password.grid(row=3, column=0, padx=20, pady=10)
+
+        # Submit Button
+        btn_submit = customtkinter.CTkButton(master=popup_window, text="Submit", command=self.submit_credentials)
+        btn_submit.grid(row=4, column=0, padx=20, pady=20)
+
+    def submit_credentials(self):
+        email = self.entry_email.get()
+        password = self.entry_password.get()
+        try:
+            user_data = self.auth_client.login_and_get_user_data(email, password)  # This should return the user data
+            if user_data:
+                self.popup_window.destroy()
+                self.controller.update_login(user_data)  # Notify the controller about the successful login
+                print("Login successful")
+        except Exception as e:
+            print(f"Login failed: {e}")
+
+    def update_login(self, logged_in_user):
+        self.btn_popup.configure(text=logged_in_user["name"])

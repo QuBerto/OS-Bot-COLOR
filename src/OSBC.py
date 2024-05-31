@@ -27,6 +27,7 @@ class App(customtkinter.CTk):
     def __init__(self, test: bool = False):
         super().__init__()
         self.__init_settings()
+
         if not test:
             ui_images_path = pathlib.Path(__file__).parent.resolve().joinpath("images", "ui")
             self.img_rocket = ImageTk.PhotoImage(
@@ -344,11 +345,11 @@ if __name__ == "__main__":
     # from model.<folder_bot_is_in> import <bot_class_name>  # Uncomment this line and replace <folder_bot_is_in> and <bot_class_name> accordingly to import your bot
     app = App()  # Add the "test=True" argument to the App constructor call.
     app.start()  # Comment out this line.
-    # app.test(Bot())  # Uncomment this line and replace argument with your bot's instance.
+#     # app.test(Bot())  # Uncomment this line and replace argument with your bot's instance.
 
 #     # IMPORTANT
 # - Make sure your bot's options are pre-defined in its __init__ method.
-# - You can stop the bot by pressing `Left Ctrl`
+# # - You can stop the bot by pressing `Left Ctrl`
 # if __name__ == "__main__":
 #     from model.osrs.public.MLM import OSRSMLM
 

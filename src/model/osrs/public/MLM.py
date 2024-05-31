@@ -13,7 +13,7 @@ class OSRSMLM(OSRSBot):
         bot_title = "MLM"
         description = ""
         super().__init__(bot_title=bot_title, description=description)
-        self.running_time = 100
+        self.running_time = 500
         self.take_breaks = False
         self.paydirt = 0
 
@@ -84,19 +84,20 @@ class OSRSMLM(OSRSBot):
 
     def deposit(self):
         paydirt_count = len(self.api_m.get_inv_item_indices(ids.PAYDIRT))
-        try:
-            self.update("Walk to deposit")
-            walker = Walker(self)
-            walker.walk_to((3750, 5671))
-        except StopIteration:
-            self.update("Walk to deposit BACKUP")
-            walker = Walker(self)
-            path = walker.get_api_walk_path((3746, 5650), (3750, 5671), "dax")
-            walker.walk(path, (3750, 5671))
+        while not self.get_nearest_tag(clr.BLUE):
+            try:
+                self.update("Walk to deposit")
+                walker = Walker(self)
+                walker.walk_to((3750, 5671))
+            except StopIteration:
+                self.update("Walk to deposit BACKUP")
+                walker = Walker(self)
+                path = walker.get_api_walk_path((3746, 5650), (3750, 5671), "dax")
+                walker.walk(path, (3750, 5671))
         while not self.click_tag_if_exists(clr.BLUE, "Deposit", check_for_red=True):
             pass
         self.update("Walk till paydirt is deposited")
-        while self.api_m.get_inv_item_indices(ids.PAYDIRT):
+        while paydirt_count == len(self.api_m.get_inv_item_indices(ids.PAYDIRT)):
             time.sleep(0.1)
         self.paydirt += paydirt_count
         if int(self.read_space()) <= 28 + 28:

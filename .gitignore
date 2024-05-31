@@ -172,3 +172,4 @@ src/runelite_settings/profile_manager_paths.json
 # Photoshop files
 *.psd
 /src/model/osrs/private
+src/utilities/api/events_api/data/*

@@ -14,7 +14,6 @@ class BotView(customtkinter.CTkFrame):
         on the bot's title and description, as well as setting controllers for the child views.
         """
         super().__init__(parent)
-
         # configure grid layout (3x1)
         self.rowconfigure(0, weight=0)  # info row will not resize
         self.rowconfigure(2, weight=1)  # log row will resize

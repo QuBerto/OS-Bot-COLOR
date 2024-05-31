@@ -35,6 +35,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 class BotThread(threading.Thread):
     def __init__(self, target: callable):
         threading.Thread.__init__(self)
+        print(target)
         self.target = target
 
     def run(self):

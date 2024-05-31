@@ -3,6 +3,7 @@ Serves as the mediator between a bot and the UI. Methods should likely not be mo
 """
 
 from model.bot import Bot, BotStatus
+from utilities.auth_client import AuthClient
 from view.bot_view import BotView
 
 
@@ -13,6 +14,15 @@ class BotController(object):
         """
         self.model: Bot = model
         self.view: BotView = view
+        self.login()
+
+    def login(self):
+        self.auth_client = AuthClient()
+        self.logged_in_user = self.auth_client.get_user()
+        if self.logged_in_user:
+            print("logged in")
+            pass
+            # self.update_login()
 
     def play(self):
         """
@@ -69,6 +79,14 @@ class BotController(object):
             self.view.frame_info.update_status_configuring()
         elif status == BotStatus.CONFIGURED:
             self.view.frame_info.update_status_configured()
+
+    def update_login(self):
+        """
+        Called from model. Tells view to update progress.
+        """
+
+        self.view.home_view.title_view.update_login(self.logged_in_user)
+        self.view.update_login(self.logged_in_user)
 
     def update_progress(self):
         """

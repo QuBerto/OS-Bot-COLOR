@@ -1,4 +1,5 @@
 from .combat.combat import OSRSCombat
+from .private.Testing import Test
 from .public.AerialFishing import OSRSAerialFishing
 from .public.AIOBankSkilling import AIOBankSkilling
 from .public.Castlewars import OSRSCastlewars
