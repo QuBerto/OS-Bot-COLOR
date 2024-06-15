@@ -11,6 +11,7 @@ class OSRSWalkingExample(OSRSBot):
         In option, set destination. Destination should be a valid location without interaction in the way (ie. doors, ditches etc.)
         """
         super().__init__(bot_title="QuBerto Wanderer", description="Walk almost anywhere.")
+        self.dest = loc.VARROCK_SQUARE
 
     def create_options(self):
         locations = [name for name in vars(loc) if not name.startswith("__")]
@@ -26,9 +27,14 @@ class OSRSWalkingExample(OSRSBot):
 
     def main_loop(self):
         while True:
-            walker = Walker(self)
-            dest = self.dest  # loc.TEST_PATH[-1]
-            if walker.walk_to(dest, host="dax"):
-                self.log_msg("Arrived at destination.")
-                self.stop()
-            self.stop()
+            print("mouse")
+            self.mouse.move_to(self.win.game_view.random_point())
+            print("Wind")
+            self.mouse.wind_move_to(self.win.inventory_slots[2].random_point())
+            # print(self.test(self.win.minimap,margin=0,columns=1))
+            # walker = Walker(self)
+            # dest = self.dest  # loc.TEST_PATH[-1]
+            # if walker.walk_to(dest, host="dax"):
+            #     self.log_msg("Arrived at destination.")
+            #     self.stop()
+            # self.stop()

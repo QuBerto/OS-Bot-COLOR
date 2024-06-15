@@ -55,6 +55,7 @@ class OSRSForester(OSRSBot):
             ids.CLUE_BOTTLE_EASY,
             ids.CLUE_NEST_ELITE,
         ]
+        self.logs = ids.MAPLE_LOGS
 
     def create_options(self):
         self.options_builder.add_slider_option("running_time", "How long to run (minutes)?", 1, 500)

@@ -11,6 +11,7 @@ Item ID Database:
     https://www.runelocus.com/tools/osrs-item-id-list/
 """
 
+import concurrent.futures
 import string
 import time
 from abc import ABCMeta
@@ -23,6 +24,8 @@ import pyautogui
 import pyautogui as pag
 import requests
 from deprecated import deprecated
+from PIL import Image
+from skimage.metrics import structural_similarity as ssim
 
 import utilities.api.item_ids as ids
 import utilities.BetterColorDetection as bcd
@@ -66,7 +69,6 @@ class RuneLiteWindow(Window):
             width=128,
             height=20,
         )
-        return True
 
     def __locate_hp_prayer_bars(self) -> None:
         """
@@ -104,10 +106,17 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
 
     def __init__(self, game_title, bot_title, description, window: Window = RuneLiteWindow("RuneLite")) -> None:
         super().__init__(game_title, bot_title, description, window)
+        self.reference_images = False
         self.bank_slots = []
         self.deposit_button = False
         self.imgtabs = False
         self.all_characters_except_digits = list(string.ascii_letters + string.punctuation + string.whitespace)
+        self.start_time = None
+        self.tick_duration = 0.6  # 600 ms is 0.6 seconds
+        self._running = False
+        if not self._running:
+            self.start_time = time.time()
+            self._running = True
 
     # --- OCR Functions ---
     @deprecated(reason="This is a slow way of checking if you are in combat. Consider using an API function instead.")
@@ -173,6 +182,13 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         elif not supress_warning:
             self.log_msg(f"Could not find {items} on the ground.")
             return False
+
+    def get_tick(self):
+        if self._running and self.start_time is not None:
+            elapsed_time = time.time() - self.start_time
+            ticks = int(elapsed_time / self.tick_duration)
+            return ticks
+        return 0
 
     def capitalize_loot_list(self, loot: str, to_list: bool):
         """
@@ -381,6 +397,38 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
             result = tuple(int(item) for item in extracted.split(","))
         return result
 
+    def camera_load_reference_images(self):
+        reference_images = {}
+        for degree in range(360):
+            image_path = f"src/images/bot/compass/large/{degree}.png"
+            image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            reference_images[degree] = image
+        return reference_images
+
+    def camera_calculate_similarity(self, img1, img2):
+        score, _ = ssim(img1, img2, full=True)
+        return score
+
+    def get_camera_degree(self):
+        if not self.reference_images:
+            self.performance_start()
+            self.log_msg("Start loading compass reference images")
+            self.reference_images = self.camera_load_reference_images()
+            self.performance_end()
+        current_image = self.win.compass_orb.screenshot()
+        current_image_gray = cv2.cvtColor(current_image, cv2.COLOR_BGR2GRAY)
+
+        def compare_images(degree):
+            reference_image = self.reference_images[degree]
+            similarity = self.camera_calculate_similarity(current_image_gray, reference_image)
+            return similarity, degree
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            results = list(executor.map(compare_images, range(360)))
+
+        max_similarity, closest_degree = max(results, key=lambda x: x[0])
+        return closest_degree
+
     def get_price(self, itemID: int) -> int:
         """
         Fetches the latest price of an item from the RuneScape Wiki API.
@@ -527,6 +575,21 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
             item = items[0]
         else:
             return False
+        return self.click_inv_item(item, text, move_first, deposit_all, max_tries, log)
+
+    def click_item_image(self, image, text: str = "Use", move_first: bool = False, deposit_all: bool = False, max_tries: int = 5, log: bool = False) -> bool:
+        """Find an item in inventory and click on it.
+        :param int item_id: An id representing the item to click on.
+        :param str text: The mouseover text to check for. (Default: Use)
+        """
+        items = self.find_inventory_slots(image)
+        if items:
+            item = items[0]
+        else:
+            return False
+        return self.click_inv_item(item, text, move_first, deposit_all, max_tries, log)
+
+    def click_inv_item(self, item, text: str = "Use", move_first: bool = False, deposit_all: bool = False, max_tries: int = 5, log: bool = False):
         self.mouse.move_to(self.win.inventory_slots[item].random_point(), mouseSpeed="fastest")
         tries = 0
         while not self.mouseover_text(text, color=clr.OFF_WHITE) and tries < max_tries:
@@ -543,6 +606,23 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
             if log:
                 self.log_msg("Clicked item #" + str(item))
             return True
+
+    def find_inventory_slots(self, image):
+        matching_slots = []
+        matching = imsearch.search_img_in_rect(image, self.win.control_panel)
+        if matching:
+            for index, slot in enumerate(self.win.inventory_slots):
+                if self.contains(slot, matching):
+                    matching_slots.append(index)  # Add slot number (1-based index)
+        return matching_slots
+
+    def contains(self, slot, other):
+        return not (
+            slot.left + slot.width <= other.left
+            or slot.left >= other.left + other.width
+            or slot.top + slot.height <= other.top
+            or slot.top >= other.top + other.height
+        )
 
     def click_rectangle(self, rectangle: Rectangle, text: str = "Use") -> bool:
         """
@@ -659,9 +739,8 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
                     return True
 
     def wait_game_ticks(self, tick: int = 1):
-        api_s = StatusSocket()
-        start_tick = api_s.get_game_tick()
-        while start_tick + tick > api_s.get_game_tick():
+        start_tick = self.get_tick()
+        while start_tick + tick > self.get_tick():
             time.sleep(1 / 10)
             pass
 
@@ -670,10 +749,11 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         Open the bank, a bank must always be marked cyan
         """
         self.click_bank()
+        print(self.wait_till_bank_open())
         return self.wait_till_bank_open()
 
     def withdraw_first(self, clicks: int = 1):
-        self.withdraw_item({"slot": 1, "clicks": clicks})
+        self.withdraw_item({"slot": 1, "clicks": clicks}, check=False)
 
     def withdraw_items(self, items, close=False, mouse_speed="fastest", check=True):
         """
@@ -717,7 +797,8 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         Returns:
             bool: True if the item withdrawal was attempted, False otherwise.
         """
-        current_inventory = self.get_inventory_length()
+        if check:
+            current_inventory = self.get_inventory_length()
         clicks = item.get("clicks")
         self.mouse.move_to(self.get_item_in_slot(item["slot"]).random_point(), mouseSpeed=mouse_speed)
         for _i in range(0, clicks):
@@ -749,11 +830,15 @@ class RuneLiteBot(Bot, metaclass=ABCMeta):
         This function continuously checks if the bank interface is open by calling the is_bank_open method until it returns True.
 
         """
-        api_m = MorgHTTPSocket()
+
         # Continuously loop until the bank interface is open
+        previous_location = self.get_player_position()
         while not self.is_bank_open():
-            if api_m.get_is_player_idle():
+            self.wait_game_ticks(1)
+            if self.get_player_position() == previous_location:
+                self.wait_game_ticks(3)
                 return False
+            previous_location = self.get_player_position()
             pass
         return True
 

@@ -115,21 +115,38 @@ def extract_text(rect: Rectangle, font: dict, color: Union[clr.Color, List[clr.C
     image = clr.isolate_colors(rect.screenshot(), color)
     result = ""
     char_list = []
+    debug_mode = True  # Set to True to enable debugging
+
     for key in font:
         if key == " " or key in exclude_chars:
             continue
+
+        if debug_mode:
+            pass
+            # print(f"Processing character: {key}")
+
         # Template match the character in the image
-        if font is PLAIN_12:
-            correlation = cv2.matchTemplate(image, font[key][2:], cv2.TM_CCOEFF_NORMED)
-        else:
-            correlation = cv2.matchTemplate(image, font[key][1:], cv2.TM_CCOEFF_NORMED)
-        # Locate the start point for each instance of this character
-        y_mins, x_mins = np.where(correlation >= 0.98)
-        # For each instance of this character, add it to the list
-        char_list.extend([key, x, y] for x, y in zip(x_mins, y_mins))
+        template = font[key][2:] if font is PLAIN_12 else font[key][1:]
+        scales = [1.0, 0.9, 1.1]  # Different scales to check for size variations
+
+        for scale in scales:
+            scaled_template = cv2.resize(template, None, fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR)
+            correlation = cv2.matchTemplate(image, scaled_template, cv2.TM_CCOEFF_NORMED)
+            y_mins, x_mins = np.where(correlation >= 0.98)
+
+            if debug_mode and list(zip(x_mins, y_mins)):
+                print(f"Character '{key}' found at positions (x, y): {list(zip(x_mins, y_mins))}")
+
+            # For each instance of this character, add it to the list
+            char_list.extend([key, x, y] for x, y in zip(x_mins, y_mins))
+
     # Sort the char list based on which ones appear closest to the top-left of the image
     char_list = sorted(char_list, key=itemgetter(2, 1))
-    # Join the charachers into a string
+
+    if debug_mode:
+        print(f"Sorted character positions: {char_list}")
+
+    # Join the characters into a string
     return result.join(letter for letter, _, _ in char_list)
 
 

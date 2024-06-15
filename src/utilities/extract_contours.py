@@ -17,7 +17,7 @@ def extract_contours(image: cv2.Mat) -> List[RuneLiteObject]:
     # Threshold the image to obtain a binary image
     thresholded_image = image
     # Find the contours
-    contours, _ = cv2.findContours(thresholded_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(thresholded_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     black_image = np.zeros(thresholded_image.shape, dtype="uint8")
     # Extract the objects from each contoured object
     objs: List[RuneLiteObject] = []

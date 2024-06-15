@@ -1,6 +1,6 @@
 import os
 
-from auth_setup import AuthClientSetup
+from auth_helperpytho import AuthClientSetup
 from Cython.Build import cythonize
 from setuptools import Extension, setup
 

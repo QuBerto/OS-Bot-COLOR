@@ -5,6 +5,7 @@ import customtkinter
 from PIL import Image, ImageTk
 
 from utilities.auth_client import AuthClient
+from view.account_view import AccountPopup
 from view.bcd2_view import bcd2view
 from view.fonts.fonts import *
 from view.sprite_scraper_view import SpriteScraperView
@@ -152,7 +153,7 @@ class TitleView(customtkinter.CTkFrame):
         )
         self.btn_popup = customtkinter.CTkButton(
             master=self,
-            text="Login",
+            text="My account",
             font=button_med_font(),
             image=self.popup_logo,
             width=BTN_WIDTH,
@@ -189,45 +190,4 @@ class TitleView(customtkinter.CTkFrame):
         view.pack(side="top", fill="both", expand=True, padx=20, pady=20)
 
     def btn_popup_clicked(self):
-        popup_window = customtkinter.CTkToplevel(master=self)
-        popup_window.geometry("400x300")
-        popup_window.title("Login")
-        popup_window.focus_set()  # Set focus to the popup window
-        self.popup_window = popup_window  # Store the popup window reference
-
-        popup_window.grid_columnconfigure(0, weight=1)
-        popup_window.grid_rowconfigure(0, weight=1)
-        popup_window.grid_rowconfigure(1, weight=1)
-        popup_window.grid_rowconfigure(2, weight=1)
-        popup_window.grid_rowconfigure(3, weight=1)
-
-        # Email Entry
-        self.entry_email = customtkinter.CTkEntry(master=popup_window)
-        label_email = customtkinter.CTkLabel(master=popup_window, text="Email:")
-        label_email.grid(row=0, column=0, padx=20, pady=10)
-        self.entry_email.grid(row=1, column=0, padx=20, pady=10)
-
-        # Password Entry
-        self.entry_password = customtkinter.CTkEntry(master=popup_window, show="*")
-        label_password = customtkinter.CTkLabel(master=popup_window, text="Password:")
-        label_password.grid(row=2, column=0, padx=20, pady=10)
-        self.entry_password.grid(row=3, column=0, padx=20, pady=10)
-
-        # Submit Button
-        btn_submit = customtkinter.CTkButton(master=popup_window, text="Submit", command=self.submit_credentials)
-        btn_submit.grid(row=4, column=0, padx=20, pady=20)
-
-    def submit_credentials(self):
-        email = self.entry_email.get()
-        password = self.entry_password.get()
-        try:
-            user_data = self.auth_client.login_and_get_user_data(email, password)  # This should return the user data
-            if user_data:
-                self.popup_window.destroy()
-                self.controller.update_login(user_data)  # Notify the controller about the successful login
-                print("Login successful")
-        except Exception as e:
-            print(f"Login failed: {e}")
-
-    def update_login(self, logged_in_user):
-        self.btn_popup.configure(text=logged_in_user["name"])
+        AccountPopup(master=self, auth_client=self.auth_client, controller=self)

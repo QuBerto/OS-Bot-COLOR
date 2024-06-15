@@ -1,10 +1,12 @@
-from typing import List, Union
+from typing import Dict, List, Union
 
 import cv2
 import numpy as np
 
 
 class Color:
+    predefined_colors: Dict[str, "Color"] = {}
+
     def __init__(self, lower: List[int], upper: List[int] = None):
         """
         Defines a color or range of colors. This class converts RGB colors to BGR to satisfy OpenCV's color format.
@@ -15,8 +17,53 @@ class Color:
         self.lower = np.array(lower[::-1])
         self.upper = np.array(upper[::-1]) if upper else np.array(lower[::-1])
 
+    def to_hex(self) -> str:
+        """Converts the color to a hex string."""
+        return "#{:02x}{:02x}{:02x}".format(*self.lower[::-1])
 
-def isolate_colors(image: cv2.Mat, colors: Union[Color, List[Color]]) -> cv2.Mat:
+    def to_rgb(self) -> List[int]:
+        """Returns the color in RGB format."""
+        return self.lower[::-1].tolist()
+
+    def to_bgr(self) -> List[int]:
+        """Returns the color in BGR format (OpenCV default)."""
+        return self.lower.tolist()
+
+    @classmethod
+    def add_predefined_color(cls, name: str, lower: List[int], upper: List[int] = None):
+        """
+        Adds a new predefined color.
+        Args:
+            name: The name of the color.
+            lower: The lower bound of the color range [R, G, B].
+            upper: The upper bound of the color range [R, G, B]. Exclude this arg if you're defining a solid color.
+        """
+        color = cls(lower, upper)
+        cls.predefined_colors[name.upper()] = color
+        setattr(cls, name.upper(), color)
+
+    @classmethod
+    def get_predefined_color(cls, name: str) -> "Color":
+        """
+        Retrieves a predefined color by name.
+        Args:
+            name: The name of the color.
+        Returns:
+            The Color object associated with the name.
+        """
+        return cls.predefined_colors.get(name.upper())
+
+    @classmethod
+    def list_predefined_colors(cls) -> List[str]:
+        """
+        Lists all predefined color names.
+        Returns:
+            A list of predefined color names.
+        """
+        return list(cls.predefined_colors.keys())
+
+
+def isolate_colors(image: np.ndarray, colors: Union[Color, List[Color]]) -> np.ndarray:
     """
     Isolates ranges of colors within an image and saves a new resulting image.
     Args:
